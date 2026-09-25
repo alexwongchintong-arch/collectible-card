@@ -1,5 +1,6 @@
 # 球星卡 · Collectible Card
 
+[![在线试用](https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E8%AF%95%E7%94%A8-GitHub%20Pages-e8b34b)](https://alexwongchintong-arch.github.io/collectible-card/)
 ![平台](https://img.shields.io/badge/platform-modern%20browser-1f6feb)
 ![依赖](https://img.shields.io/badge/dependencies-0-3fb950)
 ![题库](https://img.shields.io/badge/question%20bank-160-f0b429)
@@ -103,17 +104,17 @@
 **方式二：起一个本地服务（推荐，避免个别浏览器的本地文件限制）**
 
 ```bash
-git clone <你的仓库地址>
-cd <克隆下来的目录>
+git clone https://github.com/alexwongchintong-arch/collectible-card.git
+cd collectible-card
 python3 -m http.server 8000
 # 然后访问 http://localhost:8000/src/index.html
 ```
 
 浏览器：Chrome / Edge / Safari / Firefox 的现代版本（需要支持 ES6+ 与 Canvas）。
 
-**方式三：部署到 GitHub Pages 在线访问**
+**方式三：在线试用（无需安装，已部署）**
 
-把仓库推到 GitHub 后，在仓库 `Settings → Pages` 里把 `Source` 选为 `Deploy from a branch`、分支 `main`、目录 `/(root)`，保存后稍等片刻，即可通过 `https://<你的用户名>.github.io/<仓库名>/` 在线打开——根目录的 `index.html` 会自动跳转到应用，无需额外构建。
+本项目已部署在 GitHub Pages，直接打开即可在线体验：**https://alexwongchintong-arch.github.io/collectible-card/**（根目录的 `index.html` 会自动跳转到应用）。所有数据只保存在你自己浏览器的 localStorage 里，不上传任何服务器。
 
 **关于演示数据**：首次打开时应用会自动播种 6 位**虚构**人物（张三 / 李四 / 王五 / 赵六 / 孙七 / 周八，共 8 张卡片）与 3 个示例卡组（`示例卡组`、`围绕周八的团队`、`智能组队`），方便直接体验团队分析、智能组队与团队 PK。人物姓名与能力分值均为虚构，与任何真实人物无关；卡面头像用的是项目自带的三张演示头像（一张实拍照片 + 两张程序生成的抽象头像，均为作者自制，放在 `src/assets/avatars/`，替换成同名文件即可换成你自己的；也可以在卡片上点照片区域直接上传，图片只存在你自己的浏览器里）。想从零开始，在「设置 → 清除数据」里清空即可。
 
