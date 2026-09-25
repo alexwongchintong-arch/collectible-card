@@ -1,0 +1,22 @@
+# macOS
+.DS_Store
+Thumbs.db
+
+# 编辑器 / IDE
+.vscode/
+.idea/
+
+# 本地个人素材与原始数据（本项目不含这类内容，留作保险）
+Asset/
+data/
+*.docx
+
+# 凭据与环境变量
+.env
+.env.local
+secrets/
+*.key
+*.pem
+
+# 本地临时文件
+*.log
