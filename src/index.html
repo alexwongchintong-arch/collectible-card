@@ -450,7 +450,7 @@
   }
   .pk-row-tag {
     position: absolute; top: 4px; left: 4px;
-    font-size: 0.56rem; font-weight: 800; letter-spacing: 1.5px; color: #6b4d05;
+    font-size: 0.56rem; font-weight: 800; letter-spacing: 0.6px; color: #6b4d05;
     background: linear-gradient(180deg, #f9e9b8, #e3c565 55%, #cfa63a);
     border: 1px solid rgba(120,85,10,0.35); border-radius: 99px; padding: 2px 8px;
     box-shadow: 0 1px 3px rgba(90,64,8,0.25), inset 0 1px 0 rgba(255,255,255,0.7);
@@ -3227,6 +3227,7 @@
   .import-data-warning { margin-top: 16px; padding: 12px 16px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; font-size: 0.8rem; color: #991b1b; line-height: 1.6; }
 </style>
 <script src="question-bank.js"></script>
+<script src="i18n.js"></script>
 </head>
 <body>
 <!-- ================================================ -->
@@ -3285,6 +3286,13 @@
     <span class="page-title">设置</span>
   </div>
   <div class="page-body">
+    <div class="setting-row">
+      <div class="setting-info">
+        <h4>语言 / Language</h4>
+        <p>切换界面语言 / Switch interface language（切换后自动刷新）</p>
+      </div>
+      <button class="btn btn-filled" id="langToggleBtn" onclick="toggleLang()">English</button>
+    </div>
     <div class="setting-row">
       <div class="setting-info">
         <h4>导出数据</h4>
@@ -3764,6 +3772,92 @@
 </div>
 
 <script>
+// =====================================================================
+// I18N —— 中英文切换核心（字典内容在 src/i18n.js；未翻译的字符串安全回退为中文）
+// =====================================================================
+let LANG = 'zh';
+try { LANG = localStorage.getItem('cc-lang') || 'zh'; } catch(e) {}
+const I18N_MAP  = (typeof I18N  !== 'undefined') ? I18N  : {};
+const I18N_PATTERNS = (typeof I18N_RE !== 'undefined') ? I18N_RE : [];  // 字典文件里用 const I18N_RE 定义，这里改名避免重名
+const DIM_EN_MAP = (typeof DIM_EN !== 'undefined') ? DIM_EN : {};
+const SUB_EN_MAP = (typeof SUB_EN !== 'undefined') ? SUB_EN : {};
+
+// 短串翻译：原文（用作 key）→ 英文；未命中则原样返回（回退中文，保证可用）
+function t(zh){ return (LANG === 'en' && Object.prototype.hasOwnProperty.call(I18N_MAP, zh)) ? I18N_MAP[zh] : zh; }
+// 维度名 / 子维度名 / 段落名的显示翻译
+function dName(zh){ return (LANG === 'en' && DIM_EN_MAP[zh]) ? DIM_EN_MAP[zh] : zh; }
+function sName(zh){ return (LANG === 'en' && SUB_EN_MAP[zh]) ? SUB_EN_MAP[zh] : zh; }
+// 带占位符的模板翻译：tf('请输入「{name}」的新年份：', {name: ...})
+function tf(zh, vars){
+  const base = (LANG === 'en' && Object.prototype.hasOwnProperty.call(I18N_MAP, zh)) ? I18N_MAP[zh] : zh;
+  return String(base).replace(/\{(\w+)\}/g, function(m, k){ return (vars && vars[k] !== undefined) ? vars[k] : m; });
+}
+// 翻译任意一段文本：先精确匹配整串，再按 I18N_RE 的正则模式匹配（处理含变量的句子）
+function translateText(s){
+  if (LANG !== 'en' || !s) return s;
+  const trimmed = s.trim();
+  if (!trimmed || !/[一-鿿]/.test(trimmed)) return s;
+  if (Object.prototype.hasOwnProperty.call(I18N_MAP, trimmed)) return s.replace(trimmed, I18N_MAP[trimmed]);
+  for (let i = 0; i < I18N_PATTERNS.length; i++) {
+    if (I18N_PATTERNS[i][0].test(trimmed)) return s.replace(trimmed, trimmed.replace(I18N_PATTERNS[i][0], I18N_PATTERNS[i][1]));
+  }
+  return s;
+}
+// 翻译 root 下所有文本节点 + placeholder/title 属性
+function applyLang(root){
+  if (LANG !== 'en') return;
+  root = root || document.body;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+  const nodes = [];
+  let n;
+  while ((n = walker.nextNode())) nodes.push(n);
+  for (let i = 0; i < nodes.length; i++) {
+    const v = nodes[i].nodeValue;
+    if (v && /[一-鿿]/.test(v)) {
+      const nv = translateText(v);
+      if (nv !== v) nodes[i].nodeValue = nv;
+    }
+  }
+  root.querySelectorAll('[placeholder],[title]').forEach(function(el){
+    if (el.placeholder && /[一-鿿]/.test(el.placeholder)) el.placeholder = translateText(el.placeholder);
+    if (el.title && /[一-鿿]/.test(el.title)) el.title = translateText(el.title);
+  });
+}
+// 渲染后自动翻译：观察 DOM 变化，去抖后整体翻译一次（翻译期间先断开，避免自触发死循环）
+let _applyTimer = 0;
+const _langObserver = new MutationObserver(function(){ if (LANG === 'en') scheduleApplyLang(); });
+function scheduleApplyLang(){
+  clearTimeout(_applyTimer);
+  _applyTimer = setTimeout(function(){
+    _langObserver.disconnect();
+    try { applyLang(document.body); } finally {
+      _langObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
+    }
+  }, 20);
+}
+function toggleLang(){ setLang(LANG === 'en' ? 'zh' : 'en'); }
+function setLang(l){
+  try { localStorage.setItem('cc-lang', l); } catch(e) {}
+  location.reload(); // 直接刷新：源字符串是中文，重渲染即恢复；切到英文由观察器接管
+}
+function initI18n(){
+  // 支持 ?lang=en / ?lang=zh 直接指定语言（便于分享英文链接，也便于测试）
+  try {
+    const q = new URLSearchParams(location.search).get('lang');
+    if (q === 'en' || q === 'zh') { LANG = q; localStorage.setItem('cc-lang', q); }
+  } catch(e) {}
+  document.documentElement.lang = (LANG === 'en') ? 'en' : 'zh-CN';
+  const btn = document.getElementById('langToggleBtn');
+  if (btn) btn.textContent = (LANG === 'en') ? '中文' : 'English';
+  if (LANG === 'en') applyLang(document.body);
+  _langObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initI18n);
+} else {
+  initI18n();
+}
+
 // =====================================================================
 // DATA MODEL
 // =====================================================================
@@ -4614,10 +4708,15 @@ function render20SubRadar(canvas, card, mode) {
     const ly = cy + labelDist*Math.sin(midAngle);
     const dimAvg = scores.slice(subIdx, subIdx+count).reduce((a,b)=>a+b,0)/count;
 
-    // White pill background for readability
-    ctx.font = isMini ? 'bold 10px "PingFang SC","Microsoft YaHei",sans-serif' : 'bold 14px "PingFang SC","Microsoft YaHei",sans-serif';
+    // White pill background for readability（英文维度名更长，按长度自适应缩小字号以免超出画布）
+    const dimLabel = dName(dimKey);
+    let labelPx = isMini ? 10 : 14;
+    if (LANG === 'en' && dimLabel.length > 12) {
+      labelPx = isMini ? (dimLabel.length > 20 ? 6.5 : 8) : (dimLabel.length > 20 ? 10 : 12);
+    }
+    ctx.font = 'bold ' + labelPx + 'px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign='center'; ctx.textBaseline='middle';
-    const tw = ctx.measureText(dimKey).width;
+    const tw = ctx.measureText(dimLabel).width;
     const th = isMini ? 12 : 17;
 
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
@@ -4625,7 +4724,7 @@ function render20SubRadar(canvas, card, mode) {
     ctx.fillRect(pillX, pillY, tw + 14, th + 2);
 
     ctx.fillStyle = DIM_COLORS[dimColorIdx];
-    ctx.fillText(dimKey, lx, ly);
+    ctx.fillText(dName(dimKey), lx, ly);
 
     // Score below
     ctx.fillStyle = '#1e293b';
@@ -5190,11 +5289,11 @@ function renderCompareRadar(canvas, card) {
     const ly = cy + (r + 36) * Math.sin(midAngle);
     ctx.font = 'bold 14px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    const tw = ctx.measureText(dimKey).width;
+    const tw = ctx.measureText(dName(dimKey)).width;
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
     ctx.fillRect(lx - tw/2 - 7, ly - 9, tw + 14, 19);
     ctx.fillStyle = DIM_COLORS[dimColorIdx];
-    ctx.fillText(dimKey, lx, ly);
+    ctx.fillText(dName(dimKey), lx, ly);
     subIdx += count; dimColorIdx++;
   }
 }
@@ -5588,12 +5687,12 @@ function renderDetailBackChart() {
     ctx.fillStyle='#2c2416'; ctx.font='bold 11px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText(points[i].score.toFixed(1),x,y-10);
   }
   ctx.fillStyle='#4a3f2f'; ctx.font='11px sans-serif'; ctx.textAlign='right'; ctx.textBaseline='top';
-  for (let i=0;i<n;i++) { const x=ml+i*gap; ctx.save(); ctx.translate(x,mt+ph+6); ctx.rotate(-Math.PI/4); ctx.fillText(points[i].label,0,0); ctx.restore(); }
+  for (let i=0;i<n;i++) { const x=ml+i*gap; ctx.save(); ctx.translate(x,mt+ph+6); ctx.rotate(-Math.PI/4); ctx.fillText(sName(points[i].label),0,0); ctx.restore(); }
   ctx.fillStyle='#b8860b'; ctx.font='bold 13px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='top';
   let pi=0;
-  for (const sec of BACK_SECTIONS) { const sx=ml+pi*gap, ex=ml+(pi+sec.items.length-1)*gap; ctx.fillText(sec.name,(sx+ex)/2,mt+ph+56); pi+=sec.items.length; }
-  ctx.fillStyle='#4f46e5'; ctx.font='bold 11px sans-serif'; ctx.textAlign='left'; ctx.textBaseline='bottom'; ctx.fillText('● 得分',ml,mt-12);
-  ctx.fillStyle='#9a8e7a'; ctx.fillText('  ▨ 领导潜力参考区间',ml+70,mt-12);
+  for (const sec of BACK_SECTIONS) { const sx=ml+pi*gap, ex=ml+(pi+sec.items.length-1)*gap; ctx.fillText(t(sec.name),(sx+ex)/2,mt+ph+56); pi+=sec.items.length; }
+  ctx.fillStyle='#4f46e5'; ctx.font='bold 11px sans-serif'; ctx.textAlign='left'; ctx.textBaseline='bottom'; ctx.fillText(t('● 得分'),ml,mt-12);
+  ctx.fillStyle='#9a8e7a'; ctx.fillText(t('  ▨ 领导潜力参考区间'),ml+70,mt-12);
 }
 
 // =====================================================================
@@ -5603,29 +5702,29 @@ function renderDetailBackChart() {
 function addYear() {
   const p = currentPerson(); if (!p) return;
   const latest = getLatestCard(p);
-  const inputYear = prompt(`请输入「${p.name}」的新年份：`, String(latest ? latest.year + 1 : new Date().getFullYear()));
+  const inputYear = prompt(tf('请输入「{name}」的新年份：', { name: p.name }), String(latest ? latest.year + 1 : new Date().getFullYear()));
   if (!inputYear?.trim()) return;
   const ny = parseInt(inputYear.trim());
-  if (isNaN(ny) || ny < 1900 || ny > 2100) { alert('请输入有效年份（如 2020）'); return; }
-  if (p.cards.some(c => c.year === ny)) { alert(`${ny}年已存在`); return; }
+  if (isNaN(ny) || ny < 1900 || ny > 2100) { alert(t('请输入有效年份（如 2020）')); return; }
+  if (p.cards.some(c => c.year === ny)) { alert(tf('{year}年已存在', { year: ny })); return; }
   p.cards.push({ year: ny, scores: cloneScores(latest && latest.scores ? latest.scores : DEFAULT_SCORES), refMin: latest?latest.refMin:4, refMax: latest?latest.refMax:8, leadershipNote: '' });
   currentCardYear = ny; saveData(); renderDetailAll();
 }
 
 function deleteYear() {
   const p = currentPerson(); if (!p) return;
-  if (p.cards.length <= 1) { alert('至少保留一张卡片。'); return; }
-  if (!confirm(`确定删除 ${p.name} 的 ${currentCardYear}年 卡片吗？`)) return;
+  if (p.cards.length <= 1) { alert(t('至少保留一张卡片。')); return; }
+  if (!confirm(tf('确定删除 {name} 的 {year}年 卡片吗？', { name: p.name, year: currentCardYear }))) return;
   p.cards = p.cards.filter(c => c.year !== currentCardYear);
   currentCardYear = getLatestCard(p)?.year ?? null; saveData(); renderDetailAll();
 }
 
 function addPerson() {
-  const name = prompt('请输入人物姓名：', '新人物'); if (!name?.trim()) return;
-  const inputYear = prompt(`请输入「${name.trim()}」的第一张卡片年份：`, String(new Date().getFullYear()));
+  const name = prompt(t('请输入人物姓名：'), t('新人物')); if (!name?.trim()) return;
+  const inputYear = prompt(tf('请输入「{name}」的第一张卡片年份：', { name: name.trim() }), String(new Date().getFullYear()));
   if (!inputYear?.trim()) return;
   const y = parseInt(inputYear.trim());
-  if (isNaN(y) || y < 1900 || y > 2100) { alert('请输入有效年份'); return; }
+  if (isNaN(y) || y < 1900 || y > 2100) { alert(t('请输入有效年份')); return; }
   people.push({ id: Date.now(), name: name.trim(), photo: '', photoOffset: {x:0,y:0}, photoScale: 1,
     identity: undefined,
     cards: [{ year: y, scores: cloneScores(DEFAULT_SCORES), refMin: 4, refMax: 8, leadershipNote: '' }] });
@@ -6020,12 +6119,12 @@ function renderAssessmentResult() {
 }
 
 function resultCreateNewPerson() {
-  var name = prompt('请输入人物姓名：', '测评结果');
+  var name = prompt(t('请输入人物姓名：'), t('测评结果'));
   if (!name || !name.trim()) return;
-  var yearInput = prompt('请输入年份：', String(new Date().getFullYear()));
+  var yearInput = prompt(t('请输入年份：'), String(new Date().getFullYear()));
   if (!yearInput || !yearInput.trim()) return;
   var year = parseInt(yearInput.trim());
-  if (isNaN(year) || year < 1900 || year > 2100) { alert('请输入有效年份'); return; }
+  if (isNaN(year) || year < 1900 || year > 2100) { alert(t('请输入有效年份')); return; }
 
   people.push({
     id: Date.now(), name: name.trim(), photo: '', photoOffset: {x:0,y:0}, photoScale: 1,
@@ -6073,14 +6172,14 @@ function closeImportModal() {
 function importConfirmAddYear() {
   if (_importTargetPersonIdx === null) return;
   var year = parseInt(document.getElementById('importYearInput').value);
-  if (isNaN(year) || year < 1900 || year > 2100) { alert('请输入有效年份'); return; }
+  if (isNaN(year) || year < 1900 || year > 2100) { alert(t('请输入有效年份')); return; }
   var person = people[_importTargetPersonIdx];
   var existingCard = null;
   for (var i = 0; i < person.cards.length; i++) {
     if (person.cards[i].year === year) { existingCard = person.cards[i]; break; }
   }
   if (existingCard) {
-    if (existingCard.assessmentScores && !confirm(year + '年已有测评数据，是否用新测评结果覆盖？主观录入数据不受影响。')) return;
+    if (existingCard.assessmentScores && !confirm(tf('{year}年已有测评数据，是否用新测评结果覆盖？主观录入数据不受影响。', { year: year }))) return;
     existingCard.assessmentScores = JSON.parse(JSON.stringify(assessmentComputedScores));
   } else {
     person.cards.push({
@@ -6431,11 +6530,11 @@ function renderTeamMainRadar() {
     var ly = cy + labelDist*Math.sin(midAngle);
     ctx.font = 'bold 13px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign='center'; ctx.textBaseline='middle';
-    var tw = ctx.measureText(dimKey).width;
+    var tw = ctx.measureText(dName(dimKey)).width;
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
     ctx.fillRect(lx - tw/2 - 6, ly - 10, tw + 12, 20);
     ctx.fillStyle = DIM_COLORS[dimColorIdx];
-    ctx.fillText(dimKey, lx, ly);
+    ctx.fillText(dName(dimKey), lx, ly);
     subIdx += count; dimColorIdx++;
   });
 
@@ -7123,7 +7222,7 @@ function renderTeamRadarOnCanvas(canvas, teamCards) {
       for (var si2 = subIdx; si2 < subIdx + count; si2++) { dimAvg += avgScores[si2]; }
       dimAvg = dimAvg / count;
       var scoreText = dimAvg.toFixed(1);
-      var nameW = ctx.measureText(dimKey).width;
+      var nameW = ctx.measureText(dName(dimKey)).width;
       ctx.font = 'bold 12px Arial, sans-serif';
       var scoreW = ctx.measureText(scoreText).width;
       var padX = 9, gap = 7, ph = 24;
@@ -7141,13 +7240,13 @@ function renderTeamRadarOnCanvas(canvas, teamCards) {
       ctx.textAlign = 'left';
       ctx.font = 'bold 13px "PingFang SC","Microsoft YaHei",sans-serif';
       ctx.fillStyle = DIM_COLORS[dimColorIdx];
-      ctx.fillText(dimKey, px + padX, ly + 0.5);
+      ctx.fillText(dName(dimKey), px + padX, ly + 0.5);
       ctx.font = 'bold 12px Arial, sans-serif';
       ctx.fillStyle = '#1e293b';
       ctx.fillText(scoreText, px + padX + nameW + gap, ly + 0.5);
       ctx.textAlign = 'center';
     } else {
-      ctx.fillStyle = DIM_COLORS[dimColorIdx]; ctx.fillText(dimKey, lx, ly);
+      ctx.fillStyle = DIM_COLORS[dimColorIdx]; ctx.fillText(dName(dimKey), lx, ly);
     }
     subIdx += count; dimColorIdx++;
   });
@@ -7610,7 +7709,7 @@ function toggleGroupLeader(personId) {
   if (idx >= 0) {
     _groupModalLeaders.splice(idx, 1);
   } else {
-    if (_groupModalLeaders.length >= 2) { alert('最多设置2位Leader'); return; }
+    if (_groupModalLeaders.length >= 2) { alert(t('最多设置2位Leader')); return; }
     _groupModalLeaders.push(personId);
   }
   renderGroupSelectPeople(null);
@@ -7627,7 +7726,7 @@ function updateGroupSelection(personId, year) {
 
 function saveGroup() {
   var name = document.getElementById('groupNameInput').value.trim();
-  if (!name) { alert('请输入卡组名称'); return; }
+  if (!name) { alert(t('请输入卡组名称')); return; }
   var weight = parseFloat(document.getElementById('groupWeightInput').value) || 1.2;
 
   var selections = [];
@@ -7671,7 +7770,7 @@ document.getElementById('backToGroupList').addEventListener('click', function() 
   closeGroupDetail();
 });
 document.getElementById('deleteGroupBtn').addEventListener('click', function() {
-  if (!_currentDetailGroupId || !confirm('确定删除此卡组吗？此操作不可撤销。')) return;
+  if (!_currentDetailGroupId || !confirm(t('确定删除此卡组吗？此操作不可撤销。'))) return;
   cardGroups = cardGroups.filter(function(g) { return g.id !== _currentDetailGroupId; });
   saveGroups();
   closeGroupDetail();
@@ -7800,7 +7899,7 @@ function runSmartTeam() {
   }
   var need = size - (anchorEntry ? 1 : 0);
   if (pool.length < need) {
-    alert('可选人数不足：需要 ' + size + ' 人，当前只有 ' + (pool.length + (anchorEntry ? 1 : 0)) + ' 人有卡片数据。');
+    alert(tf('可选人数不足：需要 {size} 人，当前只有 {count} 人有卡片数据。', { size: size, count: (pool.length + (anchorEntry ? 1 : 0)) }));
     return;
   }
 
@@ -8168,11 +8267,11 @@ function renderGrowthRadar() {
     const ly = cy + (r + 32) * Math.sin(midAngle);
     ctx.font = 'bold 13px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    const tw = ctx.measureText(dimKey).width;
+    const tw = ctx.measureText(dName(dimKey)).width;
     ctx.fillStyle = 'rgba(255,255,255,0.82)';
     ctx.fillRect(lx - tw/2 - 6, ly - 10, tw + 12, 20);
     ctx.fillStyle = DIM_COLORS[dimColorIdx];
-    ctx.fillText(dimKey, lx, ly);
+    ctx.fillText(dName(dimKey), lx, ly);
     subIdx += count; dimColorIdx++;
   }
 
@@ -8844,11 +8943,11 @@ function renderPkTeamRadar() {
     var ly = cy + (r + 32) * Math.sin(midAngle);
     ctx.font = 'bold 13px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    var tw = ctx.measureText(dimKey).width;
+    var tw = ctx.measureText(dName(dimKey)).width;
     ctx.fillStyle = 'rgba(255,255,255,0.82)';
     ctx.fillRect(lx - tw/2 - 6, ly - 10, tw + 12, 20);
     ctx.fillStyle = DIM_COLORS[dimColorIdx];
-    ctx.fillText(dimKey, lx, ly);
+    ctx.fillText(dName(dimKey), lx, ly);
     subIdx += count; dimColorIdx++;
   }
 
@@ -9405,11 +9504,11 @@ function renderPkRadar() {
     var ly = cy + (r + 32) * Math.sin(midAngle);
     ctx.font = 'bold 13px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    var tw = ctx.measureText(dimKey).width;
+    var tw = ctx.measureText(dName(dimKey)).width;
     ctx.fillStyle = 'rgba(255,255,255,0.82)';
     ctx.fillRect(lx - tw/2 - 6, ly - 10, tw + 12, 20);
     ctx.fillStyle = DIM_COLORS[dimColorIdx];
-    ctx.fillText(dimKey, lx, ly);
+    ctx.fillText(dName(dimKey), lx, ly);
     subIdx += count; dimColorIdx++;
   }
 
@@ -9931,13 +10030,13 @@ function handleImportFile(file) {
     var content = e.target.result;
     var result = validateImportData(content);
     if (!result.valid) {
-      alert('导入失败：' + result.error);
+      alert(t('导入失败：') + result.error);
       return;
     }
     showImportConfirmModal(result.data);
   };
   reader.onerror = function() {
-    alert('文件读取失败，请重试。');
+    alert(t('文件读取失败，请重试。'));
   };
   reader.readAsText(file);
 }
@@ -10659,8 +10758,8 @@ function hideAllViews() {
 
 // ---- Clear data ----
 function clearAllData() {
-  if (!confirm('确认清除全部数据？此操作不可恢复！\n\n建议先导出一份备份。')) return;
-  if (!confirm('再次确认：将删除所有人物卡片和团队卡组。')) return;
+  if (!confirm(t('确认清除全部数据？此操作不可恢复！\n\n建议先导出一份备份。'))) return;
+  if (!confirm(t('再次确认：将删除所有人物卡片和团队卡组。'))) return;
   localStorage.removeItem('star-card-data-v2');
   localStorage.removeItem('star-card-groups-v1');
   people.length = 0;

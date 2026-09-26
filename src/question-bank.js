@@ -1,5 +1,5 @@
 // ===================================================================
-// 球星卡人才测评 — 完整题库（160 题）
+// 明星卡人才测评 — 完整题库（160 题）
 // ===================================================================
 // 每个子维度 8 道题，每次测试随机抽取 4 道
 // 正向题 [+] = 同意得高分，反向题 [–] = 同意得低分
@@ -252,3 +252,238 @@ const QUESTION_BANK = {
 // 验证：每个子维度恰好 8 道题
 const QUESTION_POOL_SIZE = 8;
 const QUESTIONS_PER_DIM_PER_TEST = 4;
+
+
+// 英文版题库（与 QUESTION_BANK 键名、题序、reverse 完全对齐；text 为英文）
+const QUESTION_BANK_EN = {
+
+  // A. Motivation & Energy
+
+  '成功愿望': [
+    { text: 'I proactively set goals for myself that are higher than what my manager requires.', reverse: false },
+    { text: 'Even when the odds of success are low, I am willing to give my all if the task matters enough.', reverse: false },
+    { text: 'I am often not satisfied with what I have already achieved and immediately look for the next challenge.', reverse: false },
+    { text: 'My colleagues describe me as someone who is "always pushing forward."', reverse: false },
+    { text: 'After completing an important task, I usually dive straight into the next thing instead of pausing to celebrate.', reverse: false },
+    { text: 'I have a clear ambition and an upward plan for my career.', reverse: false },
+    { text: 'If a job offers no room to grow, I would consider leaving even if the pay is generous.', reverse: false },
+    { text: 'I do not care much about being the best; what matters to me is that the process feels comfortable.', reverse: true },
+  ],
+
+  '权力动机': [
+    { text: 'In cross-department projects, I proactively seek the role of coordinator or lead.', reverse: false },
+    { text: 'When the team lacks a clear direction, I feel a strong urge to step up and guide everyone.', reverse: false },
+    { text: 'I enjoy leading a team through tough challenges to reach a goal.', reverse: false },
+    { text: 'For me, being able to influence an organization\'s decisions is more rewarding than receiving personal honors.', reverse: false },
+    { text: 'In meetings, I am usually the one who pushes the group toward a decision.', reverse: false },
+    { text: 'I do not mind the extra pressure and responsibility that come with leadership.', reverse: false },
+    { text: 'When the team is divided, I tend to step in and help the different sides reach agreement.', reverse: false },
+    { text: 'I would rather be an executor—getting concrete things done—than direct how others should work.', reverse: true },
+  ],
+
+  '亲和动机': [
+    { text: 'I proactively create opportunities to connect and build relationships with colleagues at work.', reverse: false },
+    { text: 'At lunchtime, I prefer eating with colleagues rather than alone.', reverse: false },
+    { text: 'Even when work is busy, I make time to maintain important relationships.', reverse: false },
+    { text: 'After joining a new team, I get to know everyone and blend into the group as quickly as I can.', reverse: false },
+    { text: 'Team dinners and team-building activities recharge me rather than drain me.', reverse: false },
+    { text: 'I enjoy sharing interesting things in work group chats to keep the interaction lively.', reverse: false },
+    { text: 'When a colleague leaves the company or transfers to another role, I make a point of staying in touch.', reverse: false },
+    { text: 'Working quietly on my own is the ideal state for me.', reverse: true },
+  ],
+
+  '活力': [
+    { text: 'Even after several days of overtime, I can still maintain high work efficiency.', reverse: false },
+    { text: 'I enjoy driving three or four different projects at once; this parallel pace excites me.', reverse: false },
+    { text: 'After the workday ends, I usually still have energy for exercise, learning, or socializing.', reverse: false },
+    { text: 'A calendar packed with commitments does not make me anxious—it makes me feel fulfilled.', reverse: false },
+    { text: 'My colleagues often say they envy how much energy I have.', reverse: false },
+    { text: 'A short break is enough for me to bounce back quickly; I rarely feel sluggish for a whole day.', reverse: false },
+    { text: 'During busy project peaks, my drive is actually stronger than usual.', reverse: false },
+    { text: 'I prefer an unhurried pace without too many tasks chasing me—focusing on one or two things at a time is enough.', reverse: true },
+  ],
+
+  // B. Thinking & Decision-Making
+
+  '创新意识': [
+    { text: 'Faced with an old, recurring problem, I always want to try solving it in a new way.', reverse: false },
+    { text: 'I often propose improvements to existing workflows or methods.', reverse: false },
+    { text: 'When I see excellent practices in other industries or fields, I think about whether I can adapt them to my own work.', reverse: false },
+    { text: 'My colleagues often say I have more ideas than others.', reverse: false },
+    { text: 'Even when a solution is already running smoothly, I still consider whether a better alternative exists.', reverse: false },
+    { text: 'I am highly enthusiastic about trying new tools, new software, and new ways of working.', reverse: false },
+    { text: 'In brainstorming sessions, I am usually the one contributing the most ideas.', reverse: false },
+    { text: 'I prefer proven, established methods over taking a risk on untested solutions.', reverse: true },
+  ],
+
+  '洞察性': [
+    { text: 'When reading a complex report, I can quickly identify the trends hidden behind the data.', reverse: false },
+    { text: 'When a project runs into trouble, I am not satisfied with surface explanations—I dig layer by layer to the root cause.', reverse: false },
+    { text: 'I am good at quickly distilling the few most critical points from a sea of information.', reverse: false },
+    { text: 'When colleagues bring me complex problems to discuss, I can often help them see the essence of the issue.', reverse: false },
+    { text: 'I can sharply spot the logical flaws in a plan that looks reasonable on the surface.', reverse: false },
+    { text: 'I am used to examining problems from multiple angles rather than relying only on first-hand accounts.', reverse: false },
+    { text: 'Compared with others, I more easily see the underlying connections between different events.', reverse: false },
+    { text: 'In most cases, relying on intuition is enough—digging too deep only complicates things.', reverse: true },
+  ],
+
+  '理性': [
+    { text: 'Even if a proposal comes from a close friend, I will question it when I see the data does not support it.', reverse: false },
+    { text: 'When choosing between two options, I build an objective set of evaluation criteria rather than going by feel.', reverse: false },
+    { text: 'In heated debates, I bring everyone back to the facts and data instead of letting emotions take over.', reverse: false },
+    { text: 'When making important decisions, I deliberately separate "objective facts" from "personal feelings."', reverse: false },
+    { text: 'When my intuition conflicts with the data, I choose to trust the data first.', reverse: false },
+    { text: 'Before voicing an opinion, I usually check that there is enough factual evidence to back it up.', reverse: false },
+    { text: 'When reviewing others\' work, I apply the same standard to everyone.', reverse: false },
+    { text: 'Decisions based entirely on data can sometimes overlook important human factors.', reverse: true },
+  ],
+
+  '决断力': [
+    { text: 'Even with only 70–80% of the information in hand, I can make the call and move execution forward.', reverse: false },
+    { text: 'After making an important decision, I do not keep agonizing over whether the other option would have been better.', reverse: false },
+    { text: 'Under time pressure, I can weigh the pros and cons quickly and make a clear choice.', reverse: false },
+    { text: 'When the team keeps discussing without deciding, I step up and make the call.', reverse: false },
+    { text: 'I believe a good decision made fast is more valuable than a perfect decision reached slowly.', reverse: false },
+    { text: 'Faced with several options that all look good, I can decisively pick one and commit fully to it.', reverse: false },
+    { text: 'Looking back, most of my major decisions were made within a reasonable amount of time.', reverse: false },
+    { text: 'Before making a major decision, I usually weigh things over and over, and sometimes it takes longer than expected to finally settle.', reverse: true },
+  ],
+
+  // C. Emotional Maturity
+
+  '乐观': [
+    { text: 'When a major project hits an unexpected setback, I first look for the new opportunities it might bring.', reverse: false },
+    { text: 'Facing an uncertain outcome, I tend to believe things will turn out for the better.', reverse: false },
+    { text: 'Even when team morale is low, I can inject positive energy into the group.', reverse: false },
+    { text: 'My colleagues say I am someone who "sees the bright side of everything."', reverse: false },
+    { text: 'After a failure, I quickly shift my attention to "what\'s next" rather than dwelling on the frustration.', reverse: false },
+    { text: 'Overall, I hold an optimistic view of the future of my company and industry.', reverse: false },
+    { text: 'To me, a cancelled project may well be the starting point of a better opportunity.', reverse: false },
+    { text: 'When taking on a new task, I tend to first think through all the reasons it might fail.', reverse: true },
+  ],
+
+  '抗压性': [
+    { text: 'With only one day left before a deadline, I can still deliver high-quality work in an orderly way.', reverse: false },
+    { text: 'When a senior executive suddenly challenges or criticizes me, I do not stay stuck in the emotion and let it affect my work afterward.', reverse: false },
+    { text: 'High-stakes, high-pressure projects actually bring out my best performance.', reverse: false },
+    { text: 'On multiple occasions, I kept my composure when everyone around me felt they could not hold on.', reverse: false },
+    { text: 'My colleagues describe me as someone who "eats and sleeps normally even when the sky is falling."', reverse: false },
+    { text: 'Under intense KPI and performance pressure, my work performance is not noticeably affected.', reverse: false },
+    { text: 'I have my own ways of relieving stress that protect my physical and mental state during high-pressure periods.', reverse: false },
+    { text: 'The night before an important presentation or talk, I usually sleep poorly, and it can even hurt my performance the next day.', reverse: true },
+  ],
+
+  '情绪稳定性': [
+    { text: 'No matter how the work environment changes, my emotional state stays relatively steady.', reverse: false },
+    { text: 'When something unpleasant happens, I can regain my composure within a few minutes.', reverse: false },
+    { text: 'It is hard for colleagues to tell from my expression whether I am in a good or bad mood.', reverse: false },
+    { text: 'Even when dealing with infuriating colleagues or clients, I can keep my communication calm and rational.', reverse: false },
+    { text: 'Over the past six months, I have rarely had any noticeable emotional outburst or breakdown at work.', reverse: false },
+    { text: 'My work performance is rarely affected by whether I happen to be in a good mood that day.', reverse: false },
+    { text: 'Faced with sudden bad news, I usually stay composed and deal with the problem before processing my emotions.', reverse: false },
+    { text: 'Sometimes one small annoyance can leave me irritable for an entire morning.', reverse: true },
+  ],
+
+  '适应性': [
+    { text: 'When the company suddenly shifts its strategic direction, I can quickly refocus my work accordingly.', reverse: false },
+    { text: 'With managers of different styles, I flexibly adjust how I communicate and work.', reverse: false },
+    { text: 'When I am suddenly transferred to a completely unfamiliar business area, I get up to speed and adapt fairly quickly.', reverse: false },
+    { text: 'When a plan is suddenly cancelled or changed significantly, I usually just adjust without complaining much.', reverse: false },
+    { text: 'In the past two years, I have been through at least one major change in role or responsibilities, and I adapted well.', reverse: false },
+    { text: 'Across different team cultures and work rhythms, I can always find a way to thrive.', reverse: false },
+    { text: 'I do not need a long "adjustment period"—I start producing results quickly after entering a new environment.', reverse: false },
+    { text: 'I prefer to keep a consistent way and pace of working, and I do not like being asked to adjust and change frequently.', reverse: true },
+  ],
+
+  // D. Interpersonal Interaction
+
+  '社交自信': [
+    { text: 'At an industry networking event full of strangers, I can naturally blend in and start conversations.', reverse: false },
+    { text: 'Being called on to speak at a company-wide meeting does not make me particularly nervous.', reverse: false },
+    { text: 'When meeting important clients or senior leaders for the first time, I stay composed and express myself naturally.', reverse: false },
+    { text: 'When I need to speak off the cuff in front of a group, I can express myself fluently with little preparation.', reverse: false },
+    { text: 'At business dinners or cocktail parties, I do not feel awkward or at a loss for words.', reverse: false },
+    { text: 'My colleagues say I carry myself with ease and handle any occasion gracefully.', reverse: false },
+    { text: 'I proactively make new connections in my industry and am not intimidated by someone\'s senior rank.', reverse: false },
+    { text: 'Introducing myself in front of a large group of people makes me feel uneasy and nervous.', reverse: true },
+  ],
+
+  '影响意愿': [
+    { text: 'When discussing a plan, if I believe my approach is better, I do my best to persuade the team to adopt it.', reverse: false },
+    { text: 'When I see a colleague going down the wrong path, I usually offer my suggestions and views proactively.', reverse: false },
+    { text: 'I have successfully persuaded managers or clients to change their original positions on multiple occasions.', reverse: false },
+    { text: 'When I discover something great—a book, a tool, a method—I cannot help recommending it to everyone around me.', reverse: false },
+    { text: 'At least once, my advocacy led the team to a decision different from its initial inclination.', reverse: false },
+    { text: 'I am not put off by the word "sales"—successfully selling my ideas is a process I genuinely enjoy.', reverse: false },
+    { text: 'Even in the face of resistance, I keep pushing in the direction I believe is right.', reverse: false },
+    { text: 'Everyone is entitled to their own view; I do not think it is worth spending much time trying to change others.', reverse: true },
+  ],
+
+  '同理心': [
+    { text: 'In a meeting, I can quickly sense who in the room has become emotionally resistant, even if they have not said so.', reverse: false },
+    { text: 'Before making a decision that affects others, I take time to imagine "how would I feel if I were in their shoes."', reverse: false },
+    { text: 'When a colleague is feeling down, I usually notice without being told and offer appropriate care.', reverse: false },
+    { text: 'When a colleague confides their troubles in me, I do not rush to give advice—I first make them feel understood.', reverse: false },
+    { text: 'In negotiations, I can accurately perceive the other party\'s real concerns and core needs.', reverse: false },
+    { text: 'Even when people express themselves indirectly, I can pick up the meaning they have left unsaid.', reverse: false },
+    { text: 'My managers or colleagues have said that I am "very understanding" or "very considerate of others."', reverse: false },
+    { text: 'I tend to stick to the matter at hand and do not pay much attention to how the other person feels about it.', reverse: true },
+  ],
+
+  '支持性': [
+    { text: 'When a colleague is stuck on a problem, I proactively go help even if it is not part of my job.', reverse: false },
+    { text: 'Mentoring newcomers and helping junior colleagues grow gives me great satisfaction.', reverse: false },
+    { text: 'When I see a team member overloaded with work, I proactively ask whether they need help sharing the load.', reverse: false },
+    { text: 'When a colleague\'s proposal needs backing, I voice my support publicly as long as I think it is sound.', reverse: false },
+    { text: 'I have helped colleagues handle urgent issues outside of working hours on multiple occasions.', reverse: false },
+    { text: 'When the team is stretched thin, I proactively take on logistical or coordination "chores" to ease the pressure on everyone.', reverse: false },
+    { text: 'People say I am a teammate they "can trust and rely on."', reverse: false },
+    { text: 'Everyone has their own scope of responsibility; there is no need to worry too much about other people\'s work.', reverse: true },
+  ],
+
+  // E. Task Execution
+
+  '条理性': [
+    { text: 'Before starting work each day, I list my tasks for the day and prioritize them.', reverse: false },
+    { text: 'My computer folders and inbox have a clear filing system; it rarely takes me more than a minute to find anything.', reverse: false },
+    { text: 'When I take on a large project, my first reaction is to break it down and make a phased plan.', reverse: false },
+    { text: 'When colleagues borrow my documents or files, they are usually surprised by how well organized everything is.', reverse: false },
+    { text: 'I make a habit of using project management tools or task lists to track the progress of every piece of work.', reverse: false },
+    { text: 'Even for an ad hoc meeting, I prepare a brief agenda or key points in advance.', reverse: false },
+    { text: 'When handling multiple tasks at once, I always know exactly where each one stands.', reverse: false },
+    { text: 'I do not like spending too much time on planning—jumping straight in and adjusting as I go is the most effective way.', reverse: true },
+  ],
+
+  '审慎': [
+    { text: 'Before sending an email to an important client or senior leader, I check the wording, data, and attachments over and over.', reverse: false },
+    { text: 'Before making a key decision, I make a habit of exhausting every possible risk.', reverse: false },
+    { text: 'My colleagues say I am someone whose work "they can count on," because I think through every aspect.', reverse: false },
+    { text: 'Faced with a plan that looks flawless, I deliberately look for oversights and potential problems in it.', reverse: false },
+    { text: 'I prefer to think carefully before acting—I would rather be a bit slower than go in the wrong direction.', reverse: false },
+    { text: 'Before signing a contract or making a commitment, I confirm the details of every clause, one by one.', reverse: false },
+    { text: 'Over the past year, almost none of the important matters I was responsible for suffered a major failure due to oversight.', reverse: false },
+    { text: 'Overthinking can make you miss opportunities—acting fast often matters more than careful planning.', reverse: true },
+  ],
+
+  '责任意识': [
+    { text: 'Even with no one supervising me, I always deliver work to the standard I promised.', reverse: false },
+    { text: 'When a project runs into problems, instead of rushing to blame external factors, I first look at what I could have done better.', reverse: false },
+    { text: 'I have proactively taken on tasks outside my own responsibilities when the team needed them, on multiple occasions.', reverse: false },
+    { text: 'If I promise to deliver by Friday, I will do whatever it takes to make sure it goes out by Friday.', reverse: false },
+    { text: 'When I spot a gap in the team\'s work that needs filling, I raise it proactively even if it is not my responsibility.', reverse: false },
+    { text: 'Following the company\'s rules and policies is something I do out of conviction, not compulsion.', reverse: false },
+    { text: 'I have, more than once, voluntarily spent extra time redoing a piece of work because I was not satisfied with the result.', reverse: false },
+    { text: 'Putting too much emphasis on "responsibility" can sometimes make people afraid to try risky but worthwhile things.', reverse: true },
+  ],
+
+  '意志力': [
+    { text: 'For a long-term project that takes more than six months to show results, I can sustain my motivation and commitment throughout.', reverse: false },
+    { text: 'Doing highly repetitive, monotonous work, I can still stay focused without lowering my standards.', reverse: false },
+    { text: 'Whenever I hit a major obstacle in the past, I chose to "find an alternative route and keep going" rather than retreat.', reverse: false },
+    { text: 'I have a habit (such as exercise, reading, or learning) that I have kept up for over a year with almost no interruption.', reverse: false },
+    { text: 'When my colleagues have given up, I am often still looking for a solution.', reverse: false },
+    { text: 'Even after being rejected or blocked again and again, I adjust my approach and keep trying until I reach the goal.', reverse: false },
+    { text: 'Looking back at my career, I have accomplished several things that "looked very hard at first but got done in the end."', reverse: false },
+    { text: 'I have set quite a few goals, but many of them fizzled out after a while.', reverse: true },
+  ],
+};
