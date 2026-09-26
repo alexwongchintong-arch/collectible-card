@@ -1,5 +1,7 @@
 # 球星卡 · Collectible Card
 
+**中文** | [English](README.en.md)
+
 [![在线试用](https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E8%AF%95%E7%94%A8-GitHub%20Pages-e8b34b)](https://alexwongchintong-arch.github.io/collectible-card/)
 ![平台](https://img.shields.io/badge/platform-modern%20browser-1f6feb)
 ![依赖](https://img.shields.io/badge/dependencies-0-3fb950)
