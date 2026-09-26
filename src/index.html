@@ -437,6 +437,9 @@
     padding: 1px 8px; border-radius: 99px; letter-spacing: 0.5px; white-space: nowrap;
     margin-left: auto;
   }
+  /* 英文版适配：标题与徽章更挤，收紧入口行内边距与徽章尺寸，保证标题+徽章稳定同一行 */
+  html[lang="en"] .hub-entry { padding: 16px 14px 18px; gap: 10px; }
+  html[lang="en"] .hub-entry-text h3 .meta { font-size: 0.58rem; padding: 1px 6px; }
   .hub-entry-text p { font-size: 0.76rem; color: var(--text-soft); line-height: 1.55; margin-top: 3px; }
   .hub-enter-hint {
     flex: 0 0 auto; font-size: 0.8rem; font-weight: 700; color: var(--gold);
