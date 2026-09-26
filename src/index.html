@@ -429,7 +429,8 @@
     box-shadow: 0 1px 4px rgba(79,70,229,0.12);
   }
   .hub-entry-text { flex: 1; min-width: 0; }
-  .hub-entry-text h3 { font-size: 1.02rem; font-weight: 800; color: var(--text); display: flex; align-items: baseline; gap: 8px; }
+  .hub-entry-text h3 { font-size: 1.02rem; font-weight: 800; color: var(--text); display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .hub-entry-text h3 .hc-title { white-space: nowrap; flex: 0 0 auto; }
   .hub-entry-text h3 .meta {
     font-size: 0.62rem; font-weight: 700; color: var(--gold);
     background: rgba(184,134,11,0.1); border: 1px solid rgba(184,134,11,0.3);
@@ -449,7 +450,7 @@
     display: flex; align-items: center; justify-content: center; gap: 13px;
   }
   .pk-row-tag {
-    position: absolute; top: 4px; left: 4px;
+    position: absolute; top: 4px; left: 4px; z-index: 5;
     font-size: 0.56rem; font-weight: 800; letter-spacing: 0.6px; color: #6b4d05;
     background: linear-gradient(180deg, #f9e9b8, #e3c565 55%, #cfa63a);
     border: 1px solid rgba(120,85,10,0.35); border-radius: 99px; padding: 2px 8px;
@@ -1369,6 +1370,7 @@
   }
   .dim-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
   .dim-row label { flex: 0 0 68px; font-size: 0.84rem; color: var(--text-soft); }
+  html[lang="en"] .dim-row label { flex: 0 0 150px; font-size: 0.78rem; }
   .dim-row input[type=range] { flex: 1; accent-color: var(--accent); }
   .dim-row input[type=range]:disabled { opacity: 1; accent-color: var(--accent); }
   .dim-row .val {
@@ -3858,6 +3860,13 @@ if (document.readyState === 'loading') {
   initI18n();
 }
 
+// 把以 (x,y) 为中心、宽 w 高 h 的画布标签（药丸）夹在画布内 —— 英文标签更长时防止被画布边缘裁掉
+function clampLabelToCanvas(x, y, w, h, W, H){
+  if (LANG !== 'en') return [x, y];
+  const hw = w/2 + 4, hh = h/2 + 4;
+  return [ Math.max(hw, Math.min(W - hw, x)), Math.max(hh, Math.min(H - hh, y)) ];
+}
+
 // =====================================================================
 // DATA MODEL
 // =====================================================================
@@ -4704,8 +4713,8 @@ function render20SubRadar(canvas, card, mode) {
     const midSubIdx = subIdx + (count-1)/2;
     const midAngle = startAngle + midSubIdx*angleStep;
     const labelDist = r + (isMini ? 20 : 36);
-    const lx = cx + labelDist*Math.cos(midAngle);
-    const ly = cy + labelDist*Math.sin(midAngle);
+    let lx = cx + labelDist*Math.cos(midAngle);
+    let ly = cy + labelDist*Math.sin(midAngle);
     const dimAvg = scores.slice(subIdx, subIdx+count).reduce((a,b)=>a+b,0)/count;
 
     // White pill background for readability（英文维度名更长，按长度自适应缩小字号以免超出画布）
@@ -4718,6 +4727,12 @@ function render20SubRadar(canvas, card, mode) {
     ctx.textAlign='center'; ctx.textBaseline='middle';
     const tw = ctx.measureText(dimLabel).width;
     const th = isMini ? 12 : 17;
+    // 英文标签更长：把整个标签药丸夹在画布内，避免左右/上下被裁掉
+    if (LANG === 'en') {
+      const halfW = tw/2 + 7 + 3, halfH = th/2 + 1 + 3;
+      lx = Math.max(halfW, Math.min(W - halfW, lx));
+      ly = Math.max(halfH, Math.min(H - halfH, ly));
+    }
 
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
     const pillX = lx - tw/2 - 7, pillY = ly - th/2 - 1;
@@ -5285,11 +5300,12 @@ function renderCompareRadar(canvas, card) {
   for (const dimKey of Object.keys(DIMENSIONS)) {
     const count = DIMENSIONS[dimKey].length;
     const midAngle = startAngle + (subIdx + (count-1)/2) * angleStep;
-    const lx = cx + (r + 36) * Math.cos(midAngle);
-    const ly = cy + (r + 36) * Math.sin(midAngle);
+    let lx = cx + (r + 36) * Math.cos(midAngle);
+    let ly = cy + (r + 36) * Math.sin(midAngle);
     ctx.font = 'bold 14px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     const tw = ctx.measureText(dName(dimKey)).width;
+    var _cl = clampLabelToCanvas(lx, ly, tw + 14, 19, W, H); lx = _cl[0]; ly = _cl[1];
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
     ctx.fillRect(lx - tw/2 - 7, ly - 9, tw + 14, 19);
     ctx.fillStyle = DIM_COLORS[dimColorIdx];
@@ -5659,7 +5675,7 @@ function renderDetailBackChart() {
   const ctx = canvas.getContext('2d'), W = canvas.width, H = canvas.height;
   const card = currentCard(); if (!card) return;
   const points = getBackPoints(card), refMin = card.refMin??4, refMax = card.refMax??8;
-  const ml=42,mr=24,mt=30,mb=78,pw=W-ml-mr,ph=H-mt-mb;
+  const ml=(LANG==='en'?58:42),mr=24,mt=30,mb=78,pw=W-ml-mr,ph=H-mt-mb;
   ctx.clearRect(0,0,W,H);
   for (const yv of [0,2,4,6,8,10]) {
     const y=mt+ph-(yv/10)*ph;
@@ -5686,8 +5702,8 @@ function renderDetailBackChart() {
     ctx.beginPath(); ctx.arc(x,y,4.5,0,2*Math.PI); ctx.fillStyle='#4f46e5'; ctx.fill();
     ctx.fillStyle='#2c2416'; ctx.font='bold 11px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText(points[i].score.toFixed(1),x,y-10);
   }
-  ctx.fillStyle='#4a3f2f'; ctx.font='11px sans-serif'; ctx.textAlign='right'; ctx.textBaseline='top';
-  for (let i=0;i<n;i++) { const x=ml+i*gap; ctx.save(); ctx.translate(x,mt+ph+6); ctx.rotate(-Math.PI/4); ctx.fillText(sName(points[i].label),0,0); ctx.restore(); }
+  ctx.fillStyle='#4a3f2f'; ctx.font=(LANG==='en'?'8px':'11px')+' sans-serif'; ctx.textAlign='right'; ctx.textBaseline='top';
+  for (let i=0;i<n;i++) { const x=ml+i*gap; const y0=mt+ph+6+(LANG==='en'?(i%2)*9:0); ctx.save(); ctx.translate(x,y0); ctx.rotate(-Math.PI/4); ctx.fillText(sName(points[i].label),0,0); ctx.restore(); }
   ctx.fillStyle='#b8860b'; ctx.font='bold 13px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='top';
   let pi=0;
   for (const sec of BACK_SECTIONS) { const sx=ml+pi*gap, ex=ml+(pi+sec.items.length-1)*gap; ctx.fillText(t(sec.name),(sx+ex)/2,mt+ph+56); pi+=sec.items.length; }
@@ -7227,6 +7243,7 @@ function renderTeamRadarOnCanvas(canvas, teamCards) {
       var scoreW = ctx.measureText(scoreText).width;
       var padX = 9, gap = 7, ph = 24;
       var pw = nameW + gap + scoreW + padX * 2;
+      var _cl = clampLabelToCanvas(lx, ly, pw, ph, W, H); lx = _cl[0]; ly = _cl[1];
       var px = lx - pw/2, py = ly - ph/2, pr = 12;
       ctx.beginPath();
       ctx.moveTo(px + pr, py);
@@ -8263,11 +8280,12 @@ function renderGrowthRadar() {
   for (const dimKey of Object.keys(DIMENSIONS)) {
     const count = DIMENSIONS[dimKey].length;
     const midAngle = startAngle + (subIdx + (count-1)/2) * angleStep;
-    const lx = cx + (r + 32) * Math.cos(midAngle);
-    const ly = cy + (r + 32) * Math.sin(midAngle);
+    let lx = cx + (r + 32) * Math.cos(midAngle);
+    let ly = cy + (r + 32) * Math.sin(midAngle);
     ctx.font = 'bold 13px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     const tw = ctx.measureText(dName(dimKey)).width;
+    var _cl = clampLabelToCanvas(lx, ly, tw + 12, 20, W, H); lx = _cl[0]; ly = _cl[1];
     ctx.fillStyle = 'rgba(255,255,255,0.82)';
     ctx.fillRect(lx - tw/2 - 6, ly - 10, tw + 12, 20);
     ctx.fillStyle = DIM_COLORS[dimColorIdx];
@@ -8944,6 +8962,7 @@ function renderPkTeamRadar() {
     ctx.font = 'bold 13px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     var tw = ctx.measureText(dName(dimKey)).width;
+    var _cl = clampLabelToCanvas(lx, ly, tw + 12, 20, W, H); lx = _cl[0]; ly = _cl[1];
     ctx.fillStyle = 'rgba(255,255,255,0.82)';
     ctx.fillRect(lx - tw/2 - 6, ly - 10, tw + 12, 20);
     ctx.fillStyle = DIM_COLORS[dimColorIdx];
@@ -9505,6 +9524,7 @@ function renderPkRadar() {
     ctx.font = 'bold 13px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     var tw = ctx.measureText(dName(dimKey)).width;
+    var _cl = clampLabelToCanvas(lx, ly, tw + 12, 20, W, H); lx = _cl[0]; ly = _cl[1];
     ctx.fillStyle = 'rgba(255,255,255,0.82)';
     ctx.fillRect(lx - tw/2 - 6, ly - 10, tw + 12, 20);
     ctx.fillStyle = DIM_COLORS[dimColorIdx];
@@ -10614,7 +10634,7 @@ function hubCardShellHtml(onclick, icon, title, meta, desc, stage) {
       stage +
       '<div class="hub-entry">' +
         '<div class="hub-entry-icon">' + icon + '</div>' +
-        '<div class="hub-entry-text"><h3>' + title + (meta ? '<span class="meta">' + meta + '</span>' : '') + '</h3><p>' + desc + '</p></div>' +
+        '<div class="hub-entry-text"><h3><span class="hc-title">' + title + '</span>' + (meta ? '<span class="meta">' + meta + '</span>' : '') + '</h3><p>' + desc + '</p></div>' +
         '<span class="hub-enter-hint">进入 →</span>' +
       '</div>' +
     '</div>';
