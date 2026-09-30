@@ -109,6 +109,21 @@ const I18N = {
   '专家团': 'Experts',
   '联系人': 'Contact',
 
+  // ---- 职业生态系统 ----
+  '职业生态系统': 'Career Ecosystem',
+  '🔺 职业生态系统': '🔺 Career Ecosystem',
+  '🔺 生态系统': '🔺 Ecosystem',
+  '← 生态系统': '← Ecosystem',
+  '← 返回': '← Back',
+  '你的职业人脉五层金字塔': 'Your career network as a five-tier pyramid',
+  '整个生态系统围绕你构建': 'The entire ecosystem is built around you',
+  '职业生涯中为你提建议、拥护你、激励你的导师与帮手，通常不到 5 人': 'Mentors and allies who advise, champion, and inspire you — usually fewer than 5',
+  '目前的公司里对你的发展拥有决定性影响力的 5～10 个人': 'The 5–10 people in your current company with decisive influence over your growth',
+  '拥有特殊知识与资源、能助你取得职业成功的人，为你的难题提供最佳解决方案': 'People with the expertise and influence to help you succeed, offering the best solutions to your toughest problems',
+  '职业生态系统中未经改良的原料，等待转化的广泛人脉': 'The raw material of your career ecosystem — a broad network waiting to be cultivated',
+  '层级说明': 'Tier Guide',
+  '在卡片上点身份缎带即可设置或修改身份': 'Set or change identities via the ribbon on each card',
+
   // ---- 评分等级 ----
   '待发展': 'Developing',
   '发展中': 'Growing',
