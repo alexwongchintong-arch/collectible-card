@@ -641,7 +641,7 @@ Object.assign(I18N, {
   '第 {i} 题': 'Question {i}',
   '可填 {a}–{b} 条，一条聚焦一个方面；行数可增删': 'Add {a}–{b} items, one per line; lines can be added or removed',
   '（{round} 未填写）': '({round} not filled)',
-  '{n} 张清单 · {m} 题': '{n} lists · {m}',
+  '{n} 张清单 · {m} 题': '{n} lists · {m} questions',
   '我的燃料库（{round}· 只读）': 'My Fuel Library ({round} · read-only)',
   '「{title}」在「{round}」这一轮尚未填写，可先返回清单进入该卡片填写，再回来对照。': '"{title}" has not been filled in for {round}. Open the card from the checklist, fill it in, then come back to compare.',
   '新一轮的名称（建议用年份，如 {year}）：': 'Name for the new round (a year is recommended, e.g. {year}):',

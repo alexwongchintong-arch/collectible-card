@@ -72,25 +72,27 @@ Collectible Card compresses all three into a single card: the card is the carrie
 
 ## Screenshots
 
+All screenshots below are captured from the English UI.
+
 **Hub**: Cards / Team Decks / PK Analysis / Career Ecosystem / Self-Question Checklist
 
-![Hub](docs/screenshots/02-hub.png)
+![Hub](docs/screenshots/02-hub-en.png)
 
 | Card collection | Card detail · front |
 | --- | --- |
-| ![Collection](docs/screenshots/03-collection.png) | ![Card front](docs/screenshots/04-detail-front.png) |
+| ![Collection](docs/screenshots/03-collection-en.png) | ![Card front](docs/screenshots/04-detail-front-en.png) |
 
 | Card detail · back (growth + leadership) | Self-Assessment |
 | --- | --- |
-| ![Card back](docs/screenshots/05-detail-back.png) | ![Assessment](docs/screenshots/06-assessment-intro.png) |
+| ![Card back](docs/screenshots/05-detail-back-en.png) | ![Assessment](docs/screenshots/06-assessment-intro-en.png) |
 
 | Team analysis (KPI + insights) | Solo PK |
 | --- | --- |
-| ![Team](docs/screenshots/07-team.png) | ![Solo PK](docs/screenshots/08-pk.png) |
+| ![Team](docs/screenshots/07-team-en.png) | ![Solo PK](docs/screenshots/08-pk-en.png) |
 
 | Team PK | Smart Team-Up |
 | --- | --- |
-| ![Team PK](docs/screenshots/10-team-pk.png) | ![Smart team](docs/screenshots/09-smart-team.png) |
+| ![Team PK](docs/screenshots/10-team-pk-en.png) | ![Smart team](docs/screenshots/09-smart-team-en.png) |
 
 | Self-Question Checklist · wall | Checklist · focus mode |
 | --- | --- |
