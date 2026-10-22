@@ -7,9 +7,11 @@
 ![Question bank](https://img.shields.io/badge/question%20bank-160-f0b429)
 ![Storage](https://img.shields.io/badge/storage-localStorage-8957e5)
 
-> Turn employee capability data into collectible "star cards" you can collect, compare, and combine into teams.
+> Turn capability data into collectible star cards you can compare and combine into teams — and turn the questions in your books into checklists you can answer again every year.
 
 **Collectible Card** is a zero-dependency, open-in-browser talent-review tool. It profiles every person across **5 dimensions and 20 sub-dimensions** (0–10 scale), turns each profile into a "star card" with a 20-axis radar, and lets you build team decks, run a 160-question self-assessment, analyze team synergy, auto-compose teams, and compare people or teams head-to-head — all in both Chinese and English.
+
+It also includes a **career-ecosystem pyramid** (your five relationship tiers) and a **self-question checklist**: 12 lists / 82 prompts distilled from book notes, with per-year rounds, side-by-side round comparison, a sweet-spot worksheet, and full English content.
 
 > **Inspiration**
 > This project draws on ideas from two books, plus my own interpretation:
@@ -55,22 +57,24 @@ Collectible Card compresses all three into a single card: the card is the carrie
 | Module | What it does |
 | --- | --- |
 | **Landing** | Dark vortex-particle entry — "Enter Collection" or "Enter Assessment" |
-| **Hub** | Three entry cards (Cards / Team Decks / PK Analysis) with live previews of the top score, featured deck, and top matchup |
+| **Hub** | Five entry cards (Cards / Team Decks / PK Analysis / Career Ecosystem / Self-Question Checklist) with live previews of the top score, featured deck, top matchup, pyramid, and checklist |
 | **Cards** | 5 dimensions × 20 sub-dimensions (0–10, 0.1 step), overall score + D/C/B/A/S grade; double-sided cards (front: radar + sub-scores; back: growth line chart, leadership-potential range, notes); per-person identity, photo (drag to pan, scroll to zoom), yearly cards, "cards by year" view |
 | **Self-Assessment** | Built-in 160-question bank; each test randomly draws 80 questions (4 per sub-dimension) on a 7-point Likert scale; results write back to a person's card for a chosen year and are tagged by source |
 | **Team Decks** | Mosaic covers from member photos, 👑 Leaders (up to 2) with a leader weight, each member pinned to a specific year's card |
 | **Team Analysis** | Team-weighted radar + three KPIs (Spread, Complementarity, Weakness Risk), plus auto-generated insights on complementary strengths, redundancies, weaknesses, and conflicts — with a "linkage rules" page explaining the logic |
 | **Smart Team-Up** | Pick a team size (3–6), optionally anchor around someone, and slide between "complementary coverage" and "strength stacking"; results come with KPIs and reasoning and can be saved as a deck |
 | **PK Analysis** | Solo PK and Team PK: two cards plus an overlaid radar; significant leads (≥1.5 on a sub-dimension) are called out; team mode adds Key Players, Team DNA, and Top-N gap analysis |
+| **Career Ecosystem** | A five-tier pyramid built from each card's Identity (Yourself / Supporters / Key Colleagues / Experts / Contacts); tap an avatar to open that person's card; reachable from the Hub and the collection |
+| **Self-Question Checklist** | 12 lists / 82 prompts adapted from book notes, with Ask / Write / Data item types and a sweet-spot worksheet; filterable card wall, focus and overview modes, per-year rounds, side-by-side round comparison, autosave, progress, print-friendly, fully bilingual |
 | **Growth view** | A person's score trend across years, alongside the back-of-card growth line and leadership-potential range |
 | **Data management** | One-click JSON export/import (versioned, field-validated), clear-all, and built-in demo data to explore with |
-| **Bilingual** | Switch 中文 / English in Settings (or append `?lang=en` to the URL); every dimension, sub-dimension, question, and UI string is translated |
+| **Bilingual** | Switch 中文 / English in Settings (or append `?lang=en` to the URL); every dimension, sub-dimension, question, checklist prompt, and UI string is translated |
 
 ## Screenshots
 
-| Landing | Hub |
-| --- | --- |
-| ![Landing](docs/screenshots/01-landing.png) | ![Hub](docs/screenshots/02-hub.png) |
+**Hub**: Cards / Team Decks / PK Analysis / Career Ecosystem / Self-Question Checklist
+
+![Hub](docs/screenshots/02-hub.png)
 
 | Card collection | Card detail · front |
 | --- | --- |
@@ -87,6 +91,10 @@ Collectible Card compresses all three into a single card: the card is the carrie
 | Team PK | Smart Team-Up |
 | --- | --- |
 | ![Team PK](docs/screenshots/10-team-pk.png) | ![Smart team](docs/screenshots/09-smart-team.png) |
+
+| Self-Question Checklist · wall | Checklist · focus mode |
+| --- | --- |
+| ![Checklist wall](docs/screenshots/13-checklist-en.png) | ![Checklist focus](docs/screenshots/14-checklist-focus-en.png) |
 
 ## Quick start
 
@@ -113,7 +121,7 @@ The project is deployed on GitHub Pages — open it directly: **https://alexwong
 
 Browsers: a recent Chrome / Edge / Safari / Firefox (needs ES6+ and Canvas).
 
-**About the demo data:** on first launch the app seeds **6 fictional people** (张三 / 李四 / 王五 / 赵六 / 孙七 / 周八, 8 cards total) and **3 demo decks** (`示例卡组`, `围绕周八的团队`, `智能组队`) so you can try team analysis, smart team-up, and team PK right away. Names and scores are fictional and unrelated to any real person; the avatars are three project-provided placeholders (replace `src/assets/avatars/` with your own images, or upload photos directly on a card — they stay in your browser only). To start fresh, use **Settings → Clear Data**.
+**About the demo data:** on first launch the app seeds **6 fictional people** (张三 / 李四 / 王五 / 赵六 / 孙七 / 周八, 8 cards total) and **3 demo decks** (`示例卡组`, `围绕周八的团队`, `智能组队`) so you can try team analysis, smart team-up, and team PK right away. Names and scores are fictional and unrelated to any real person; the avatars are three project-provided placeholders (replace `src/assets/avatars/` with your own images, or upload photos directly on a card — they stay in your browser only). To start fresh, use **Settings → Clear Data**. The **self-question checklist** starts empty, with only the current year's round created; answers are saved to your browser as you type.
 
 ## Usage guide
 
@@ -124,6 +132,8 @@ Browsers: a recent Chrome / Edge / Safari / Firefox (needs ES6+ and Canvas).
 3. **Flip the card**: the back shows the growth line chart, the leadership-potential reference range, and "📝 Observation Notes". Click "📂 N cards" to flip through yearly cards, or "📈 Growth" for the trend view.
 4. **Build & analyze a deck**: in "Team Decks", create a deck, pick members (one card each) and optional 👑 Leaders with a weight; open it to see the weighted radar, KPIs, and insights — or use "✨ Smart Team-Up" to let the tool compose a team for you.
 5. **PK**: in "PK Analysis", pick two people (or two decks) to see the overlaid radar and each side's standout strengths.
+6. **See your ecosystem**: open "🔺 Ecosystem" from the Hub or the collection to view the five-tier pyramid built from each card's Identity; tap an avatar to jump back to that person's card.
+7. **Fill the checklist**: open "📝 Self-Questions" from the Hub, pick a list, and answer prompt by prompt (autosaved). Switch between focus and overview, add a new round, or use "⇄ Compare" to put two rounds side by side. The Long View's "Career Path · Sweet Spot" is a worksheet: once you fill in the paths below, the fuel needed is summarized automatically.
 
 ## Scoring model
 
@@ -171,8 +181,11 @@ All data lives only in your own browser's `localStorage`. **No backend, no accou
 | `star-card-groups-v1` | Team decks |
 | `pk-insight-width` | PK page UI preference |
 | `cc-lang` | Interface language (zh / en) |
+| `self-check-answers-v1` | Checklist answers (stored per round) |
+| `self-check-rounds-v1` / `self-check-round-active-v1` | Checklist round list and active round |
+| `self-check-view-v1` / `self-check-lines-v1` | Checklist view preference and line counts |
 
-Exported backup structure:
+Exported backup structure (people and decks only; checklist answers are **not** included in export/import yet):
 
 ```json
 {
@@ -190,7 +203,7 @@ Exported backup structure:
 }
 ```
 
-> ⚠️ Local data means **switching browsers, clearing cache, or changing computers loses it**. Make a habit of **Settings → Export** backups. Don't rename the `localStorage` keys — that breaks compatibility with existing data.
+> ⚠️ Local data means **switching browsers, clearing cache, or changing computers loses it**. Make a habit of **Settings → Export** backups. Don't rename the `localStorage` keys — that breaks compatibility with existing data. Checklist answers are also local-only and are not part of the JSON backup yet.
 
 ## Project structure
 
@@ -201,6 +214,9 @@ collectible-card/
 ├── src/
 │   ├── index.html           # The app: HTML + CSS + JS in one file
 │   ├── question-bank.js     # 160-question bank (20 sub-dimensions × 8)
+│   ├── checklist-data.js    # Checklist data (categories → groups → sections → items)
+│   ├── checklist-i18n.js    # English checklist content
+│   ├── checklist.js         # Checklist module (wall, focus/overview, rounds, compare, worksheet)
 │   ├── i18n.js              # Chinese–English dictionary (UI strings)
 │   └── assets/avatars/      # Demo avatars (replaceable)
 ├── docs/
@@ -215,9 +231,10 @@ collectible-card/
 
 ## Tech stack
 
-- **Single-file app**: `src/index.html` holds inline CSS and JS; only the question bank and the i18n dictionary are separate files. No framework, no build, no CDN.
+- **Single-file app**: `src/index.html` holds inline CSS and JS; only the question bank, checklist data, and i18n dictionary are separate files. No framework, no build, no CDN.
 - **Canvas 2D**: the 20-axis radar is rendered in several modes (detail / plain / mini / team); the card back has a growth line chart with a reference band.
-- **SVG + requestAnimationFrame**: the landing vortex particles; radial-gradient breathing background on view switches.
+- **SVG + requestAnimationFrame**: the landing vortex particles; the five-tier career-ecosystem pyramid with avatars; radial-gradient breathing background on view switches.
+- **Plain DOM + localStorage**: checklist answers are organized by round → list → item, autosaved, switchable between focus and overview, and comparable across rounds.
 - **localStorage + JSON import/export**: exports are versioned; imports are field-validated and backward-compatible with the older flat format.
 - **Native drag & mouse events**: card ordering, deck membership, photo pan/zoom.
 - **Responsive**: breakpoints at 780px and 1200px.
@@ -225,6 +242,7 @@ collectible-card/
 ## Known limitations
 
 - **Single machine, single browser**: no accounts, no cloud sync, no collaboration — the only way to share data is exporting/importing JSON.
+- **Checklist answers are not in the backup**: JSON export currently covers people and decks only; checklist answers stay in the current browser.
 - **The assessment is not a professional instrument**: AI-generated questions, self-reported Likert answers, no norms or percentiles, untested reliability/validity. Compare people cautiously; it's a conversation starter, not a decision basis.
 - **Mobile is only breakpoint-adapted**: dragging and photo panning rely on mouse events; touch support is not finished.
 - **No automated tests**: `tests/` is empty; verification is manual for now.
@@ -235,24 +253,26 @@ collectible-card/
 - [ ] Assessment norms / percentiles so scores are comparable across people
 - [ ] Export cards as images / PDF for review materials
 - [ ] Multi-rater scoring with believability-weighted aggregation
+- [ ] Include checklist answers in JSON export/import and allow exporting a single list
 - [ ] Full touch support for mobile
 - [ ] Split the source into modules and add minimal regression tests for scoring
 
-> Still under active development (latest update: 2026-09).
+> Still under active development (latest update: 2026-10).
 
 ## Contributing
 
 Issues and PRs are welcome. The workflow is simple:
 
-1. Edit `src/index.html` (or `question-bank.js` / `i18n.js`) and just refresh the browser — there's no build step.
-2. Before submitting, walk the main flow once: new card → score/assess → deck → team analysis → PK.
+1. Edit `src/index.html` (or `question-bank.js` / `checklist-*.js` / `i18n.js`) and just refresh the browser — there's no build step.
+2. Before submitting, walk the main flow once: new card → score/assess → deck → team analysis → PK, plus Hub → Career Ecosystem / Self-Question Checklist.
 3. Don't rename the `localStorage` keys or the export-file `version` field, to keep existing users' data compatible.
 4. Please include screenshots for UI changes.
 
 ## Acknowledgements
 
 - Ray Dalio, _Principles_ — the "baseball card" talent profile and idea-meritocracy, believability-weighted decision-making;
-- Brian Fetherstonhaugh, _The Long View_ — the three kinds of career fuel (transferable skills / meaningful experiences / enduring relationships) and the career-ecosystem relationships (Contacts / Experts / Key Colleagues / Supporters), which became the card's Identity field;
+- Brian Fetherstonhaugh, _The Long View_ — the three kinds of career fuel (transferable skills / meaningful experiences / enduring relationships) and the career-ecosystem relationships (Contacts / Experts / Key Colleagues / Supporters), which became the card's Identity field; the checklist's career math, five big questions, four golden questions, and sweet-spot worksheet also come from this book;
+- Other checklist prompts are adapted from reading notes on _精进_, _A More Beautiful Question_, and _How to Know a Person_, plus public course notes — a question index, not a substitute for the books;
 - Demo names and scores are fictional and for demonstration only; the three demo avatars are author-provided (one real photo, two procedurally generated abstract images).
 
 ## License

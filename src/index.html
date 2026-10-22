@@ -317,10 +317,12 @@
 
   /* ===== HUB VIEW ===== */
   #hubView { display: none; padding: 24px 20px 60px; position: relative; z-index: 1; }
-  /* 头部与卡片区同宽（4×340 + 3×28 = 1444px），「← 首页」左缘与最左卡左边框同一竖线，右侧设置钮右缘与最右卡右边框同一竖线 */
+  /* 头部宽度由 JS（fitHubHeader）按卡墙实际外缘动态计算：
+     无论视口宽度 / 浏览器缩放 / 卡片折行，均让「← 首页」左缘锚定卡墙最左卡左边框，
+     设置钮右缘锚定卡墙最右卡右边框（取最宽一行，即全部卡片的整体外缘）。 */
   .hub-header {
     display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-    margin-bottom: 30px; max-width: 1444px; margin-left: auto; margin-right: auto;
+    margin-bottom: 30px; width: 100%; margin-left: auto; margin-right: auto;
   }
   .hub-header .spacer { flex: 1; }
   .hub-title { font-size: 1.05rem; font-weight: 800; color: var(--gold); white-space: nowrap; }
@@ -442,8 +444,9 @@
   html[lang="en"] .hub-entry { padding: 16px 12px 18px; gap: 8px; }
   html[lang="en"] .hub-enter-hint { font-size: 0.65rem; }
   html[lang="en"] .hub-entry-text h3 .meta { font-size: 0.56rem; padding: 1px 5px; }
-  /* 描述固定保留两行高度：四张卡的入口区高度一致，标题行跨卡对齐 */
-  .hub-entry-text p { font-size: 0.76rem; color: var(--text-soft); line-height: 1.55; margin-top: 3px; min-height: 2.36rem; }
+  /* 描述固定保留两行高度：各卡入口区高度一致，标题行跨卡对齐 */
+  .hub-entry-text p { font-size: 0.76rem; color: var(--text-soft); line-height: 1.55; margin-top: 3px; min-height: 2.36rem;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .hub-enter-hint {
     flex: 0 0 auto; font-size: 0.8rem; font-weight: 700; color: var(--gold);
     opacity: 0.55; transform: translateX(-4px); transition: all 0.25s ease; white-space: nowrap;
@@ -3261,8 +3264,583 @@
   .import-data-summary { padding: 4px 0; font-size: 0.85rem; color: var(--text); line-height: 1.8; }
   .import-data-summary strong { color: var(--accent); }
   .import-data-warning { margin-top: 16px; padding: 12px 16px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; font-size: 0.8rem; color: #991b1b; line-height: 1.6; }
+
+  /* ================================================================
+     CHECKLIST VIEW — 自问清单（所有样式限定在 #checklistView 内）
+     视觉与收藏卡系统同源：奶油卡纸 / 金色描边 / 深色星空底
+     ================================================================ */
+  #checklistView { display: none; position: relative; z-index: 1; width: 100%; padding: 24px 30px 56px; }
+  #checklistView .cl-toolbar { margin-bottom: 6px; }
+  #checklistView .cl-toolbar .stat-chip { height: 34px; }
+  #checklistView .cl-desc {
+    font-size: 0.76rem; color: var(--text-on-dark-soft); line-height: 1.7;
+    margin: 0 0 22px;
+  }
+  #checklistView .cl-desc b { color: #f5e3a8; }
+  #checklistView .toolbar {
+    display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 26px;
+  }
+  #checklistView .tb-label { font-size: 0.72rem; font-weight: 700; color: var(--text-on-dark-soft); }
+  #checklistView .segmented {
+    display: inline-flex; border-radius: 99px;
+    background: rgba(255,255,255,0.07); padding: 3px;
+    border: 1px solid rgba(255,255,255,0.16);
+  }
+  #checklistView .segmented button {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 28px; padding: 0 16px;
+    font-family: inherit; font-size: 0.78rem; font-weight: 700;
+    border-radius: 99px; border: 1px solid transparent;
+    background: transparent; color: var(--text-on-dark-soft);
+    cursor: pointer; transition: all 0.15s ease; white-space: nowrap;
+  }
+  #checklistView .segmented button.active {
+    background: rgba(212,175,55,0.16); color: #f5e3a8;
+    border-color: rgba(212,175,55,0.55);
+  }
+  #checklistView .segmented button:disabled { opacity: 0.35; cursor: default; pointer-events: none; }
+  #checklistView .stat-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 30px; padding: 0 14px; border-radius: 99px;
+    font-size: 0.75rem; font-weight: 700; color: var(--text-on-dark-soft);
+    border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04);
+  }
+  #checklistView .stat-chip b { color: #f5e3a8; font-weight: 800; }
+  #checklistView .btn-ghost {
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 30px; padding: 0 14px; border-radius: 99px; cursor: pointer;
+    font-family: inherit; font-size: 0.75rem; font-weight: 700;
+    color: var(--text-on-dark-soft); background: transparent;
+    border: 1px solid rgba(255,255,255,0.2); transition: all 0.15s ease;
+  }
+  #checklistView .btn-ghost:hover { color: #fff; border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.06); }
+  #checklistView .btn-ghost.active {
+    color: #f5e3a8; border-color: rgba(212,175,55,0.55);
+    background: rgba(212,175,55,0.16);
+  }
+  #checklistView .btn-ghost:disabled { opacity: 0.35; cursor: default; pointer-events: none; }
+  #checklistView .btn-reset {
+    height: 30px; padding: 0 14px; border-radius: 99px; cursor: pointer;
+    font-family: inherit; font-size: 0.75rem; font-weight: 700;
+    color: #f1a5a5; background: transparent;
+    border: 1px solid rgba(220,38,38,0.35); transition: all 0.15s ease;
+  }
+  #checklistView .btn-reset:hover { background: rgba(220,38,38,0.14); border-color: rgba(220,38,38,0.6); }
+
+  #checklistView .cat { margin-bottom: 40px; }
+  #checklistView .cat-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+  #checklistView .cat-title {
+    font-family: "Songti SC", "STSong", serif;
+    font-size: 1.3rem; font-weight: 900; color: var(--gold); letter-spacing: 0.04em;
+  }
+  #checklistView .cat-meta { font-size: 0.76rem; color: var(--text-on-dark-soft); }
+  #checklistView .cat-meta b { color: #f5e3a8; }
+  #checklistView .cat-progress { display: flex; align-items: center; gap: 8px; }
+  #checklistView .cat-bar { width: 120px; height: 5px; border-radius: 99px; background: rgba(255,255,255,0.1); overflow: hidden; }
+  #checklistView .cat-bar i { display: block; height: 100%; width: 0; border-radius: 99px;
+    background: linear-gradient(90deg, #d4af37, #f5e3a8); transition: width 0.3s ease; }
+  #checklistView .cat-desc { font-size: 0.8rem; color: var(--text-on-dark-soft); margin-bottom: 16px; line-height: 1.7; }
+
+  #checklistView .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 22px; align-items: stretch; }
+  #checklistView .qcard { cursor: pointer; }
+  #checklistView .qcard-face {
+    height: 100%;
+    background: linear-gradient(160deg, #e6dfd0, #a89f8a 42%, #d8d1bd 78%, #968d76);
+    border: 1px solid rgba(0,0,0,0.35);
+    border-radius: var(--radius);
+    box-shadow: 0 10px 26px rgba(0,0,0,0.35), inset 0 1px 1px rgba(255,255,255,0.45), inset 0 -2px 4px rgba(0,0,0,0.22);
+    padding: 8px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  #checklistView .qcard:hover .qcard-face {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 38px rgba(0,0,0,0.5), 0 0 22px rgba(212,175,55,0.3),
+      inset 0 1px 1px rgba(255,255,255,0.45), inset 0 -2px 4px rgba(0,0,0,0.22);
+  }
+  #checklistView .qcard.frame-gold .qcard-face {
+    background: linear-gradient(160deg, #f8e38a, #8f6b1a 42%, #e9cf6d 78%, #a87f1f);
+  }
+  #checklistView .qcard.frame-silver .qcard-face {
+    background: linear-gradient(160deg, #eef1f6, #7d8592 42%, #d3d8e0 78%, #969eab);
+  }
+  #checklistView .qc-panel {
+    height: 100%; border-radius: 8px; overflow: hidden;
+    background: var(--card-bg);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.16), 0 1px 0 rgba(255,255,255,0.35);
+    padding: 12px 14px; display: flex; flex-direction: column; position: relative;
+  }
+  #checklistView .qc-name-bar { display: flex; align-items: center; gap: 8px; min-height: 30px; margin-bottom: 10px; }
+  #checklistView .qc-num {
+    font-family: "Songti SC", "STSong", serif;
+    font-size: 1.05rem; font-weight: 800; color: rgba(184,134,11,0.55); line-height: 1;
+  }
+  #checklistView .qc-name {
+    font-family: "Songti SC", "STSong", serif;
+    font-size: 1.08rem; font-weight: 800; letter-spacing: 1px; color: var(--text);
+    line-height: 1.35; flex: 1; min-width: 0;
+  }
+  #checklistView .qc-go {
+    flex: none; width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #f5e3a8; font-size: 13px;
+    background: rgba(20,16,40,0.6);
+    border: 1px solid rgba(212,175,55,0.65);
+    box-shadow: 0 3px 12px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.18);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  #checklistView .qcard:hover .qc-go { transform: scale(1.1); box-shadow: 0 0 16px rgba(212,175,55,0.55), 0 3px 12px rgba(0,0,0,0.45); }
+  #checklistView .qc-cover {
+    position: relative; height: 150px; border-radius: 6px; border: 2px solid #1a1410;
+    overflow: hidden; flex: none;
+    background: radial-gradient(120% 110% at 50% 0%, #2a2440 0%, #14101f 62%, #0a0a0f 100%);
+  }
+  #checklistView .qc-art { display: block; width: 100%; height: 100%; }
+  #checklistView .qc-ribbon {
+    position: absolute; left: 0; top: 10px; z-index: 2;
+    font-size: 0.64rem; font-weight: 800; letter-spacing: 1px; color: #3d2c05;
+    padding: 3px 16px 3px 10px; white-space: nowrap; max-width: 85%;
+    overflow: hidden; text-overflow: ellipsis;
+    background: linear-gradient(180deg, #fae27c 0%, #e8c34a 45%, #c9a227 55%, #efd66a 100%);
+    clip-path: polygon(0 0, 100% 0, calc(100% - 9px) 50%, 100% 100%, 0 100%);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.6);
+  }
+  #checklistView .qc-intro {
+    margin-top: 10px; font-size: 0.78rem; color: var(--text-soft); line-height: 1.65;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  #checklistView .qc-purpose {
+    margin-top: 8px; padding: 7px 10px;
+    font-size: 0.74rem; color: var(--text-soft); line-height: 1.65;
+    background: #faf5e8; border: 1px dashed #e3d9bd; border-radius: 8px;
+  }
+  #checklistView .qc-purpose .tag {
+    display: inline-block; margin-right: 6px; padding: 0 7px; border-radius: 4px;
+    font-size: 0.62rem; font-weight: 800; letter-spacing: 1px; color: #6b4d05;
+    background: linear-gradient(180deg, #f9e9b8, #e3c565);
+    border: 1px solid rgba(120,85,10,0.3); vertical-align: 1px;
+  }
+  #checklistView .qc-stats { margin-top: auto; padding-top: 12px; display: flex; align-items: flex-end; gap: 14px; }
+  #checklistView .qc-stat { display: flex; align-items: flex-end; gap: 6px; }
+  #checklistView .qc-stat .stat-lbl {
+    font-size: 0.6rem; font-weight: 800; letter-spacing: 1px; color: #fff;
+    padding: 2px 7px; border-radius: 4px; margin-bottom: 3px;
+    background: linear-gradient(180deg, #8a8a8a, #5c5c5c);
+  }
+  #checklistView .qc-stat .stat-lbl.gold { background: linear-gradient(180deg, #d4af37, #8f6b1a); }
+  #checklistView .qc-stat b {
+    font-family: "Songti SC", "STSong", serif;
+    font-size: 1.5rem; font-weight: 900; color: var(--text); line-height: 1;
+  }
+  #checklistView .qc-prog { flex: 1; display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+  #checklistView .qc-prog-text { font-size: 0.64rem; font-weight: 700; color: var(--text-soft); }
+  #checklistView .qc-prog-text b { color: var(--gold); }
+  #checklistView .qc-prog-bar { width: 100%; height: 5px; border-radius: 99px; background: #ece5d3; overflow: hidden; }
+  #checklistView .qc-prog-bar i { display: block; height: 100%; width: 0; border-radius: 99px;
+    background: linear-gradient(90deg, #d4af37, #f5e3a8); transition: width 0.3s ease; }
+  #checklistView .qc-foot { margin-top: 10px; border-top: 1px dashed var(--border); display: flex; align-items: stretch; }
+  #checklistView .qc-foot > span {
+    flex: 1; padding: 8px 4px 0;
+    font-size: 0.72rem; color: var(--text-soft); line-height: 1.5;
+    display: flex; align-items: center; gap: 5px;
+  }
+  #checklistView .qc-foot .cta {
+    justify-content: flex-end; text-align: right;
+    color: var(--accent); font-weight: 800;
+    border-left: 1px dashed var(--border);
+  }
+
+  #checklistView .note-topbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  #checklistView .note-head {
+    background: linear-gradient(180deg, #fffef9 0%, #faf7f0 100%);
+    border: 1.5px solid #ddd8ce; border-radius: var(--radius);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+    padding: 18px 24px 14px;
+  }
+  #checklistView .note-head-chip {
+    display: inline-flex; align-items: center;
+    font-size: 0.68rem; font-weight: 800; letter-spacing: 0.5px; color: #6b4d05;
+    background: linear-gradient(180deg, #f9e9b8, #e3c565 55%, #cfa63a);
+    border: 1px solid rgba(120,85,10,0.4); border-radius: 99px;
+    padding: 3px 10px; box-shadow: 0 2px 6px rgba(90,64,8,0.25), inset 0 1px 0 rgba(255,255,255,0.7);
+  }
+  #checklistView .note-title {
+    margin-top: 8px;
+    font-family: "Songti SC", "STSong", serif;
+    font-size: 1.45rem; font-weight: 900; color: var(--text); line-height: 1.35;
+  }
+  #checklistView .note-meta { margin-top: 4px; font-size: 0.72rem; color: #b3a37e; font-weight: 600; }
+  #checklistView .note-intro { margin-top: 8px; font-size: 0.82rem; color: var(--text-soft); line-height: 1.75; }
+  #checklistView .note-intro + .note-intro { margin-top: 4px; }
+  #checklistView .note-purpose { color: var(--text); }
+  #checklistView .note-purpose b { color: var(--gold); }
+  #checklistView .note-foot { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 0.72rem; color: var(--text-soft); line-height: 1.65; }
+  #checklistView .note-progress { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  #checklistView .note-bar { width: 150px; height: 5px; border-radius: 99px; background: rgba(255,255,255,0.1); overflow: hidden; }
+  #checklistView .note-bar i { display: block; height: 100%; width: 0; border-radius: 99px;
+    background: linear-gradient(90deg, #d4af37, #f5e3a8); transition: width 0.3s ease; }
+  #checklistView .note-progress-text { font-size: 0.74rem; font-weight: 700; color: var(--text-on-dark-soft); white-space: nowrap; }
+  #checklistView .note-progress-text b { color: #f5e3a8; }
+  #checklistView .save-hint { font-size: 0.68rem; color: rgba(255,255,255,0.35); min-width: 90px; }
+
+  #checklistView .glyph {
+    flex: none; min-width: 36px; height: 18px; margin-top: 2px;
+    padding: 0 7px; border-radius: 99px;
+    font-size: 0.6rem; font-weight: 800; line-height: 1; letter-spacing: 0.5px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  #checklistView .glyph.q    { background: var(--accent-light); color: var(--accent); }
+  #checklistView .glyph.write{ background: #fdf3d7; color: #7a5a00; }
+  #checklistView .glyph.data { background: #efe9dc; color: #6f5715; }
+  #checklistView .item-text { font-size: 0.84rem; font-weight: 600; line-height: 1.65; color: var(--text); }
+  #checklistView .item-note { margin-top: 2px; font-size: 0.72rem; color: var(--text-soft); line-height: 1.6; }
+  #checklistView .w-input {
+    display: block; width: 100%; margin-top: 8px;
+    font-family: inherit; font-size: 0.83rem; line-height: 1.65; color: var(--text);
+    background: #fff; border: 1.5px solid #e2dccb; border-radius: 9px;
+    padding: 7px 10px; min-height: 58px; resize: vertical; overflow: hidden;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  #checklistView .w-input::placeholder { color: #c3b89f; }
+  #checklistView .w-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+
+  #checklistView .lines { margin-top: 10px; }
+  #checklistView .lines-hint { font-size: 0.68rem; font-weight: 700; color: #b3a37e; margin-bottom: 2px; }
+  #checklistView .line-row { display: flex; align-items: baseline; gap: 8px; margin-top: 8px; }
+  #checklistView .line-row .n { flex: none; width: 16px; text-align: right; font-size: 0.78rem; color: #b3a37e; font-weight: 700; }
+  #checklistView .line-input {
+    flex: 1; border: none; border-bottom: 1.5px solid #d9d1ba; background: transparent;
+    font-family: inherit; font-size: 0.86rem; color: var(--text);
+    padding: 5px 4px; transition: border-color 0.15s ease;
+  }
+  #checklistView .line-input:focus { outline: none; border-bottom-color: var(--accent); }
+  #checklistView .line-input::placeholder { color: #cfc5ad; font-size: 0.76rem; }
+  #checklistView .line-del {
+    flex: none; width: 20px; height: 20px; border-radius: 50%; padding: 0; cursor: pointer;
+    font-size: 0.6rem; line-height: 1; color: #c0b495;
+    background: transparent; border: 1px solid transparent;
+    transition: all 0.15s ease;
+  }
+  #checklistView .line-del:hover { color: var(--danger); border-color: rgba(220,38,38,0.4); background: rgba(220,38,38,0.08); }
+  #checklistView .line-add {
+    margin-top: 9px; padding: 2px 10px; border-radius: 99px; cursor: pointer;
+    font-family: inherit; font-size: 0.7rem; font-weight: 700; color: #a08c5f;
+    background: transparent; border: 1px dashed #d9cfae;
+    transition: all 0.15s ease;
+  }
+  #checklistView .line-add:hover { color: var(--gold); border-color: var(--gold); background: rgba(212,175,55,0.08); }
+
+  #checklistView .sec-panel {
+    background: linear-gradient(180deg, #fffef9 0%, #faf7f0 100%);
+    border: 1.5px solid #ddd8ce; border-radius: var(--radius);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+    padding: 14px 22px 16px; margin-bottom: 16px;
+    max-width: 1120px; margin-left: auto; margin-right: auto;
+  }
+  #checklistView .sec-panel-head {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 4px;
+    font-size: 0.9rem; font-weight: 800; color: var(--gold); letter-spacing: 0.02em;
+  }
+  #checklistView .sec-panel-head::before { content: ''; flex: none; width: 3px; height: 14px; border-radius: 2px;
+    background: linear-gradient(180deg, #f5e3a8, #b8860b); }
+  #checklistView .sec-panel-head .sec-count { font-size: 0.68rem; font-weight: 700; color: #b3a37e; }
+  #checklistView .sec-panel-head .sec-desc {
+    flex: 1; min-width: 0; padding-left: 10px; border-left: 1px solid #e8dfc9;
+    font-size: 0.7rem; font-weight: 600; color: #b3a37e; letter-spacing: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  #checklistView .witem { padding: 12px 4px 12px; }
+  #checklistView .witem + .witem { border-top: 1px dashed #eae2cd; }
+  #checklistView .sec-panel.tri .sec-items { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  #checklistView .sec-panel.tri .witem { padding: 12px 16px; }
+  #checklistView .sec-panel.tri .witem:first-child { padding-left: 4px; }
+  #checklistView .sec-panel.tri .witem:last-child { padding-right: 4px; }
+  #checklistView .sec-panel.tri .witem + .witem { border-top: none; border-left: 1px dashed #eae2cd; }
+  #checklistView .witem-q { display: flex; align-items: flex-start; gap: 8px; }
+  #checklistView .witem .lines { max-width: 760px; }
+
+  #checklistView .focus { max-width: 1240px; margin: 0 auto; }
+  #checklistView .focus-dots { display: flex; gap: 9px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px; }
+  #checklistView .fdot {
+    width: 12px; height: 12px; border-radius: 50%; padding: 0; cursor: pointer;
+    border: 1.5px solid rgba(212,175,55,0.55); background: rgba(255,255,255,0.04);
+    transition: all 0.15s ease;
+  }
+  #checklistView .fdot.done { background: linear-gradient(180deg, #e3c565, #cfa63a); border-color: rgba(212,175,55,0.9); }
+  #checklistView .fdot.cur { transform: scale(1.4); border-color: #f5e3a8; box-shadow: 0 0 10px rgba(212,175,55,0.65); }
+  #checklistView .focus-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  #checklistView .focus-pair.single { grid-template-columns: 1fr; max-width: 640px; margin: 0 auto; }
+  #checklistView .focus-pair.tri { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  #checklistView .focus.tri .focus-dots { margin-bottom: 10px; }
+  #checklistView .focus-group-desc {
+    display: flex; align-items: center; gap: 8px;
+    max-width: 1240px; margin: 0 auto 10px;
+    font-size: 0.76rem; font-weight: 700; color: #b3a37e; line-height: 1.6;
+  }
+  #checklistView .focus-group-desc::before { content: ''; flex: none; width: 3px; height: 14px; border-radius: 2px;
+    background: linear-gradient(180deg, #f5e3a8, #b8860b); }
+  #checklistView .focus-card {
+    background: linear-gradient(180deg, #fffef9 0%, #faf7f0 100%);
+    border: 1.5px solid #ddd8ce; border-radius: var(--radius);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+    padding: 20px 24px 20px; height: 100%;
+  }
+  #checklistView .focus-meta {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+    font-size: 0.76rem; font-weight: 800; color: var(--gold); letter-spacing: 0.5px;
+  }
+  #checklistView .focus-meta::before { content: ''; flex: none; width: 3px; height: 12px; border-radius: 2px;
+    background: linear-gradient(180deg, #f5e3a8, #b8860b); }
+  #checklistView .focus-q .item-text { font-size: 0.98rem; }
+  #checklistView .focus .lines { margin-top: 14px; }
+  #checklistView .focus-btns { display: flex; justify-content: space-between; margin-top: 18px; }
+
+  #checklistView .split-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  #checklistView .split-wrap .ws { max-width: none; }
+  #checklistView .ref-pane { position: sticky; top: 14px; max-height: calc(100vh - 32px); overflow: auto; }
+  #checklistView .ref-body { padding: 12px 18px 16px; }
+  #checklistView .ref-group-title {
+    font-family: "Songti SC", "STSong", serif;
+    font-size: 1rem; font-weight: 900; color: var(--text); margin-bottom: 4px;
+  }
+  #checklistView .ref-item { padding: 8px 0; }
+  #checklistView .ref-item + .ref-item { border-top: 1px dashed #eae2cd; }
+  #checklistView .ref-q { font-size: 0.8rem; font-weight: 600; color: var(--text-soft); line-height: 1.6; }
+  #checklistView .ref-vals { margin: 4px 0 0 16px; font-size: 0.82rem; color: var(--text); line-height: 1.7; }
+  #checklistView .ref-none { margin-top: 3px; font-size: 0.72rem; color: #c9bfa5; }
+  #checklistView .ref-empty { margin-top: 10px; font-size: 0.78rem; color: #b3a37e; line-height: 1.7; }
+
+  #checklistView .ws { max-width: 1120px; margin: 0 auto; }
+  #checklistView .ws-box {
+    background: linear-gradient(180deg, #fffef9 0%, #faf7f0 100%);
+    border: 1.5px solid #d8d2c2; border-radius: 10px;
+    box-shadow: 0 10px 26px rgba(0,0,0,0.42);
+  }
+  #checklistView .ws-ideal { padding: 22px 26px 24px; text-align: center; }
+  #checklistView .ws-ideal-title {
+    font-family: "Songti SC", "STSong", serif;
+    font-size: 1.2rem; font-weight: 900; color: var(--text); letter-spacing: 0.04em;
+  }
+  #checklistView .ws-ideal-line {
+    margin-top: 14px; display: flex; align-items: baseline; justify-content: center;
+    gap: 8px; flex-wrap: wrap;
+    font-family: "Songti SC", "STSong", serif;
+    font-size: 1.12rem; font-weight: 700; color: var(--text);
+  }
+  #checklistView .ws-blank {
+    border: none; border-bottom: 2px solid #8a6d1f; background: transparent;
+    font-family: inherit; font-size: 0.95rem; color: var(--text);
+    text-align: center; padding: 3px 8px; min-width: 72px;
+    transition: border-color 0.15s ease;
+  }
+  #checklistView .ws-blank:focus { outline: none; border-bottom-color: var(--accent); }
+  #checklistView .ws-blank::placeholder { color: #c3b89f; font-size: 0.78rem; }
+  #checklistView .ws-goal { flex: 0 1 340px; min-width: 220px; }
+  #checklistView .ws-legend { margin-top: 14px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  #checklistView .ws-legend-item {
+    display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+    padding: 8px 12px; border-radius: 10px;
+    background: rgba(255,254,249,0.06); border: 1px dashed rgba(212,175,55,0.4);
+    font-size: 0.72rem; color: var(--text-on-dark-soft); line-height: 1.5;
+  }
+  #checklistView .ws-legend-item b { color: #f5e3a8; font-size: 0.78rem; }
+  #checklistView .ws-fuel-chip {
+    flex: none; padding: 1px 8px; border-radius: 99px;
+    font-size: 0.62rem; font-weight: 800; letter-spacing: 1px; color: #6b4d05;
+    background: linear-gradient(180deg, #f9e9b8, #e3c565);
+    border: 1px solid rgba(120,85,10,0.35);
+  }
+  #checklistView .ws-block-title {
+    margin: 18px 0 10px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+    font-size: 0.95rem; font-weight: 800; color: var(--gold); letter-spacing: 0.03em;
+  }
+  #checklistView .ws-block-sub { font-size: 0.68rem; font-weight: 600; color: var(--text-on-dark-soft); }
+  #checklistView .ws-cols3 { display: grid; grid-template-columns: repeat(3, 1fr); }
+  #checklistView .ws-col { padding: 14px 16px 15px; }
+  #checklistView .ws-col + .ws-col { border-left: 1.5px solid #e0d9c6; }
+  #checklistView .ws-col h4 {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 0.8rem; font-weight: 800; color: var(--text-soft); margin-bottom: 8px;
+  }
+  #checklistView .ws-fuel-row { display: flex; align-items: baseline; gap: 6px; margin-top: 9px; }
+  #checklistView .ws-fuel-row .n { flex: none; width: 14px; text-align: right; font-size: 0.76rem; color: #b3a37e; font-weight: 700; }
+  #checklistView .ws-fuel-row .ws-blank { flex: 1; min-width: 0; text-align: left; border-bottom-width: 1.5px; border-bottom-color: #c9c0aa; font-size: 0.85rem; }
+  #checklistView .ws-agg-row { display: flex; align-items: flex-start; gap: 7px; margin-top: 8px; font-size: 0.8rem; color: var(--text); line-height: 1.55; }
+  #checklistView .ws-agg-badge {
+    flex: none; width: 18px; height: 18px; border-radius: 50%; margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.62rem; font-weight: 800; color: #6b4d05;
+    background: linear-gradient(180deg, #f9e9b8, #e3c565);
+  }
+  #checklistView .ws-agg-empty { margin-top: 8px; font-size: 0.76rem; color: #c9bfa5; }
+  #checklistView .ws-path-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 10px; }
+  #checklistView .ws-pcol h5 { font-size: 0.76rem; font-weight: 800; color: var(--gold); margin-bottom: 4px; }
+  #checklistView .ws-prow { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+  #checklistView .ws-prow .line-input { flex: 1; min-width: 0; }
+  #checklistView .ws-tag { flex: none; display: inline-flex; gap: 2px; padding: 2px; border-radius: 99px; background: #f1ead7; border: 1px solid #e0d6ba; }
+  #checklistView .ws-tag button {
+    width: 20px; height: 20px; border-radius: 50%; border: 1px solid transparent;
+    font-size: 0.62rem; font-weight: 800; color: #a08c5f; background: transparent; cursor: pointer; padding: 0;
+  }
+  #checklistView .ws-tag button.on { color: #6b4d05; background: linear-gradient(180deg, #f9e9b8, #e3c565); border-color: rgba(120,85,10,0.4); }
+  #checklistView .ws-path h4 { position: relative; }
+  #checklistView .ws-path-del { position: absolute; right: 0; top: -2px; }
+  #checklistView .btn-path-add {
+    display: block; margin: 18px auto 0; padding: 8px 22px; border-radius: 99px; cursor: pointer;
+    font-family: inherit; font-size: 0.8rem; font-weight: 700; color: #f5e3a8;
+    background: rgba(212,175,55,0.1); border: 1px dashed rgba(212,175,55,0.55);
+    transition: all 0.15s ease;
+  }
+  #checklistView .btn-path-add:hover { background: rgba(212,175,55,0.2); border-style: solid; }
+  #checklistView .ws-paths { margin-top: 20px; position: relative; padding-left: 58px; display: flex; flex-direction: column; gap: 16px; }
+  #checklistView .ws-paths::before {
+    content: ''; position: absolute; left: 16px; top: 6px; bottom: 30px;
+    border-left: 2px dotted rgba(212,175,55,0.55);
+  }
+  #checklistView .ws-path-wrap { position: relative; }
+  #checklistView .ws-path-wrap::before {
+    content: ''; position: absolute; left: -42px; top: 28px; width: 34px;
+    border-top: 2px dotted rgba(212,175,55,0.55);
+  }
+  #checklistView .ws-path-wrap::after {
+    content: '➤'; position: absolute; left: -12px; top: 19px;
+    font-size: 10px; color: rgba(212,175,55,0.85);
+  }
+  #checklistView .ws-path { padding: 12px 20px 14px; }
+  #checklistView .ws-path h4 {
+    text-align: center; font-family: "Songti SC", "STSong", serif;
+    font-size: 0.98rem; font-weight: 900; color: var(--text); margin-bottom: 6px; letter-spacing: 0.06em;
+  }
+  #checklistView .ws-path-row { display: flex; gap: 12px; align-items: flex-start; margin-top: 8px; }
+  #checklistView .ws-path-row label { flex: none; width: 170px; padding-top: 6px; font-size: 0.82rem; font-weight: 700; color: var(--text-soft); line-height: 1.5; }
+  #checklistView .ws-path-row .ws-blank { flex: 1; text-align: left; }
+  #checklistView .ws-path-row .w-input { flex: 1; margin-top: 0; min-height: 44px; }
+
+  #checklistView .rv { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  #checklistView .rv-pane {
+    background: linear-gradient(180deg, #fffef9 0%, #faf7f0 100%);
+    border: 1.5px solid #ddd8ce; border-radius: var(--radius);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45); overflow: hidden;
+  }
+  #checklistView .rv-bar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 10px 14px; background: #f7f3e8; border-bottom: 1.5px solid #e6dfcd;
+  }
+  #checklistView .rv-bar-label { font-size: 0.7rem; font-weight: 800; color: var(--text-soft); letter-spacing: 1px; }
+  #checklistView .rv-bar .segmented { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.12); }
+  #checklistView .rv-bar .segmented button { color: var(--text-soft); }
+  #checklistView .rv-bar .segmented button.active {
+    background: rgba(212,175,55,0.22); color: #8a6d1f; border-color: rgba(184,134,11,0.5);
+  }
+  #checklistView .rv-list { padding: 8px 16px 16px; }
+  #checklistView .rv-sec {
+    display: flex; align-items: center; gap: 8px; margin: 12px 0 6px;
+    font-size: 0.8rem; font-weight: 800; color: var(--gold);
+  }
+  #checklistView .rv-sec::before { content: ''; flex: none; width: 3px; height: 12px; border-radius: 2px;
+    background: linear-gradient(180deg, #f5e3a8, #b8860b); }
+  #checklistView .rv-sec:first-child { margin-top: 4px; }
+  #checklistView .rv-item { padding: 8px 0; }
+  #checklistView .rv-item + .rv-item { border-top: 1px dashed #eae2cd; }
+  #checklistView .cmp-hint { margin-top: 10px; font-size: 0.72rem; color: var(--text-on-dark-soft); text-align: right; }
+
+  /* 三题横排页：吃满宽屏，放大说明、题干与输入区 */
+  #clNoteView.tri-note .note-topbar { max-width: min(100%, 2200px); margin-left: auto; margin-right: auto; }
+  #clNoteView.tri-note #clNoteHead,
+  #clNoteView.tri-note .sec-panel,
+  #clNoteView.tri-note .focus { max-width: min(100%, 2200px); }
+  #clNoteView.tri-note .note-head { padding: 24px 34px 20px; }
+  #clNoteView.tri-note .note-head-chip { font-size: 0.72rem; padding: 4px 12px; }
+  #clNoteView.tri-note .note-title { font-size: 1.9rem; }
+  #clNoteView.tri-note .note-meta { font-size: 0.82rem; }
+  #clNoteView.tri-note .note-intro { font-size: 1rem; line-height: 1.8; }
+  #clNoteView.tri-note .sec-panel { padding: 22px 34px 24px; }
+  #clNoteView.tri-note .sec-panel-head { font-size: 1.08rem; gap: 12px; margin-bottom: 6px; }
+  #clNoteView.tri-note .sec-panel-head .sec-count { font-size: 0.78rem; }
+  #clNoteView.tri-note .sec-panel-head .sec-desc {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 0.84rem; padding-left: 12px;
+  }
+  #clNoteView.tri-note .sec-panel-head .sec-desc::after {
+    content: ''; flex: 1; min-width: 24px; height: 1px;
+    background: linear-gradient(90deg, #e8dfc9, rgba(232,223,201,0));
+  }
+  #clNoteView.tri-note .sec-panel.tri .witem { padding-top: 20px; padding-bottom: 20px; }
+  #clNoteView.tri-note .item-text { font-size: 1.02rem; line-height: 1.7; }
+  #clNoteView.tri-note .item-note { font-size: 0.82rem; }
+  #clNoteView.tri-note .glyph { min-width: 42px; height: 20px; font-size: 0.68rem; }
+  #clNoteView.tri-note .line-row { margin-top: 14px; }
+  #clNoteView.tri-note .line-row .n { width: 20px; font-size: 0.86rem; }
+  #clNoteView.tri-note .line-input { font-size: 1.04rem; padding: 8px 6px; }
+  #clNoteView.tri-note .line-input::placeholder { font-size: 0.86rem; }
+  #clNoteView.tri-note .line-add { font-size: 0.8rem; padding: 5px 14px; }
+  #clNoteView.tri-note .focus-group-desc { font-size: 0.88rem; margin: 0 0 14px; max-width: none; }
+  #clNoteView.tri-note .focus-card { padding: 30px 34px; }
+  #clNoteView.tri-note .focus-meta { font-size: 0.86rem; }
+  #clNoteView.tri-note .focus-q .item-text { font-size: 1.14rem; }
+  #clNoteView.tri-note .focus .lines { margin-top: 20px; }
+  #clNoteView.tri-note .focus-pair { gap: 24px; }
+
+  /* hub 入口卡封面：清单 + 问号 */
+  .hub-cl-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 3; }
+  .hub-cl-stage svg { height: 78%; width: auto; filter: drop-shadow(0 10px 18px rgba(60,45,10,0.35)); transition: transform 0.3s ease; }
+  .hub-card:hover .hub-cl-stage svg { transform: translateY(-4px) rotate(-1deg); }
+
+  @media (max-width: 1024px) {
+    #checklistView .sec-panel.tri .sec-items { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    #checklistView .sec-panel.tri .witem:nth-child(3) { border-left: none; padding-left: 4px; }
+    #checklistView .focus-pair.tri { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 900px) {
+    #checklistView .rv { grid-template-columns: 1fr; }
+    #checklistView .focus-pair { grid-template-columns: 1fr; }
+    #checklistView .split-wrap { grid-template-columns: 1fr; }
+    #checklistView .ref-pane { position: static; max-height: none; }
+    #checklistView .ws-legend, #checklistView .ws-cols3, #checklistView .ws-path-cols { grid-template-columns: 1fr; }
+    #checklistView .ws-col + .ws-col { border-left: none; border-top: 1.5px solid #e0d9c6; }
+  }
+  @media (max-width: 640px) {
+    #checklistView { padding: 0 14px 48px; }
+    #checklistView .cards { grid-template-columns: 1fr; }
+    #checklistView .sec-panel.tri .sec-items { grid-template-columns: 1fr; }
+    #checklistView .sec-panel.tri .witem,
+    #checklistView .sec-panel.tri .witem:nth-child(3) { border-left: none; padding: 12px 4px; }
+    #checklistView .sec-panel.tri .witem + .witem { border-top: 1px dashed #eae2cd; border-left: none; }
+    #checklistView .sec-panel-head .sec-desc { display: none; }
+    #checklistView .focus-pair.tri { grid-template-columns: 1fr; }
+    #checklistView .ws { padding: 0; }
+    #checklistView .ws-paths { padding-left: 30px; }
+    #checklistView .ws-paths::before { left: 6px; }
+    #checklistView .ws-path-wrap::before { left: -24px; width: 18px; }
+    #checklistView .ws-path-wrap::after { display: none; }
+    #checklistView .ws-path-row { flex-direction: column; gap: 2px; }
+    #checklistView .ws-path-row label { width: auto; padding-top: 0; }
+    #checklistView .focus-card { padding: 16px 16px 14px; }
+  }
+  @media (max-width: 640px) {
+    #clNoteView.tri-note .note-head { padding: 18px 20px 16px; }
+    #clNoteView.tri-note .note-title { font-size: 1.5rem; }
+    #clNoteView.tri-note .note-intro { font-size: 0.86rem; }
+    #clNoteView.tri-note .sec-panel { padding: 14px 16px 16px; }
+    #clNoteView.tri-note .sec-panel-head .sec-desc { display: none; }
+    #clNoteView.tri-note .sec-panel.tri .witem { padding-top: 12px; padding-bottom: 12px; }
+    #clNoteView.tri-note .focus-card { padding: 16px 16px 14px; }
+    #clNoteView.tri-note .focus-q .item-text { font-size: 1rem; }
+    #clNoteView.tri-note .focus-pair { gap: 16px; }
+    #clNoteView.tri-note .line-input { font-size: 0.96rem; }
+  }
+  @media print {
+    #checklistView .note-topbar, #checklistView .rv-bar, #checklistView .focus-dots,
+    #checklistView .focus-btns, #checklistView .line-add, #checklistView .line-del,
+    #checklistView .btn-path-add { display: none !important; }
+    #checklistView .sec-panel, #checklistView .ws-box, #checklistView .rv-pane,
+    #checklistView .note-head, #checklistView .focus-card { box-shadow: none; break-inside: avoid; }
+  }
 </style>
 <script src="question-bank.js"></script>
+<script src="checklist-data.js"></script>
+<script src="checklist-i18n.js"></script>
+<script src="checklist.js"></script>
 <script src="i18n.js"></script>
 </head>
 <body>
@@ -3497,7 +4075,7 @@
 <!-- ================================================ -->
 <div id="ecosystemView">
   <div class="detail-header">
-    <button class="btn btn-outline btn-back" id="ecoBackBtn" onclick="closeEcosystemView()">← 返回</button>
+    <button class="icon-back" id="ecoBackBtn" title="返回主页" onclick="closeEcosystemView()">←</button>
     <span class="detail-name">🔺 职业生态系统</span>
     <span class="spacer"></span>
   </div>
@@ -3628,6 +4206,45 @@
     这些关联规则可在 PK 对比和团队分析中参考，帮助理解个人特质联动与团队组合设计。
   </div>
   <div id="rulesContent"></div>
+</div>
+
+<!-- ================================================ -->
+<!-- CHECKLIST VIEW — 自问清单                          -->
+<!-- ================================================ -->
+<div id="checklistView">
+  <div id="clIndexView">
+    <div class="collection-toolbar cl-toolbar">
+      <button class="icon-back" title="返回主页" onclick="clClose()">←</button>
+      <h1 class="pa-title">自问清单</h1>
+      <span class="count-badge"><b id="clStatNotes">-</b> 张清单 <span class="sep">|</span> <b id="clStatItems">-</b> 题</span>
+      <span class="spacer"></span>
+      <div class="segmented" id="clSeg">
+        <button data-cat="all" class="active" onclick="clSetFilter('all')">全部</button>
+        <button data-cat="yuanjian" onclick="clSetFilter('yuanjian')">🔭 《远见》</button>
+        <button data-cat="others" onclick="clSetFilter('others')">🧩 其他书籍</button>
+      </div>
+      <span class="stat-chip">本轮已填 <b id="clStatDone">0</b> / <b id="clStatTotal">0</b></span>
+    </div>
+    <p class="cl-desc">《远见》等书籍的自问清单，辅助你理清职业生涯规划</p>
+    <main id="clApp"></main>
+  </div>
+
+  <div id="clNoteView" style="display:none;">
+    <div class="note-topbar">
+      <button class="btn-ghost" onclick="clCloseNote()">← 返回清单</button>
+      <span id="clViewSwitch"></span>
+      <span class="round-controls"></span>
+      <button class="btn-ghost" id="clCmpBtn" onclick="clToggleReview()">⇄ 回顾对照</button>
+      <button class="btn-reset" onclick="clResetRound()">清空本轮</button>
+      <span class="save-hint" id="clSaveHint"></span>
+      <span class="note-progress">
+        <span class="note-bar"><i id="clNoteBar"></i></span>
+        <span class="note-progress-text">已填写 <b id="clNoteDone">0</b> / <b id="clNoteTotal">0</b>（<b class="stat-round">-</b>）</span>
+      </span>
+    </div>
+    <div id="clNoteHead"></div>
+    <div id="clNoteBody" style="margin-top:16px"></div>
+  </div>
 </div>
 
 <!-- ================================================ -->
@@ -3890,6 +4507,13 @@ function scheduleApplyLang(){
 function toggleLang(){ setLang(LANG === 'en' ? 'zh' : 'en'); }
 function setLang(l){
   try { localStorage.setItem('cc-lang', l); } catch(e) {}
+  try {
+    const u = new URL(location.href);
+    if (u.searchParams.has('lang')) {
+      u.searchParams.set('lang', l);
+      history.replaceState(null, '', u.href);
+    }
+  } catch(e) {}
   location.reload(); // 直接刷新：源字符串是中文，重渲染即恢复；切到英文由观察器接管
 }
 function initI18n(){
@@ -4402,7 +5026,43 @@ function fitShellToColumns(shellId) {
   shell.style.width = Math.min(n * CARD + (n - 1) * GAP, available) + 'px';
 }
 function fitCollectionShell() { fitShellToColumns('collectionShell'); }
-window.addEventListener('resize', function() { fitCollectionShell(); fitTeamShell(); fitPkShell(); });
+
+// Hub 头部对齐：宽度取卡墙「最宽一行」的实际外缘，让「← 首页」左缘与卡墙最左卡
+// 左边框同一条竖线、设置钮右缘与最右卡右边框同一条竖线。用真实卡片位置测量，
+// 因此折行（1/2/3/4/5 列）、视口宽度、浏览器缩放变化后都能重新贴合。
+function fitHubHeader() {
+  const hub = document.getElementById('hubView');
+  const header = hub && hub.querySelector('.hub-header');
+  const grid = document.getElementById('hubGrid');
+  if (!hub || !header || !grid || !hub.offsetWidth) return; // hub 隐藏时不测量
+  const cards = grid.children;
+  if (!cards.length) { header.style.width = ''; header.style.marginLeft = ''; header.style.marginRight = ''; return; }
+  let left = Infinity, right = -Infinity;
+  for (let i = 0; i < cards.length; i++) {
+    const rect = cards[i].getBoundingClientRect(); // 保留小数位，奇数宽度折行时也能精确贴合
+    left = Math.min(left, rect.left);
+    right = Math.max(right, rect.right);
+  }
+  if (!isFinite(left) || !isFinite(right) || right <= left) return;
+  const cs = getComputedStyle(hub);
+  const contentLeft = hub.getBoundingClientRect().left +
+    (parseFloat(cs.borderLeftWidth) || 0) + (parseFloat(cs.paddingLeft) || 0);
+  header.style.width = (right - left) + 'px';
+  // 卡片总宽小于容器时自动居中；窄于卡片（单卡溢出）时 auto margin 会被压成 0，
+  // 这里显式给负左边距，保证头部和卡片一样相对内容区居中。
+  header.style.marginLeft = (left - contentLeft) + 'px';
+  header.style.marginRight = '0px';
+}
+// 滚动条出现/消失、字体或缩放导致容器内容宽度变化时，resize 事件不一定触发；
+// 直接观察 hub 容器尺寸，任何重排后都重新贴合一次。
+if (typeof ResizeObserver !== 'undefined') {
+  const _hubViewEl = document.getElementById('hubView');
+  if (_hubViewEl) {
+    window._hubFitObserver = new ResizeObserver(function() { fitHubHeader(); });
+    window._hubFitObserver.observe(_hubViewEl);
+  }
+}
+window.addEventListener('resize', function() { fitCollectionShell(); fitTeamShell(); fitPkShell(); fitHubHeader(); });
 
 // PK 页工具栏以「双卡+雷达」内容的实际宽度为准，不超出卡片位置
 function fitPkShell() {
@@ -8192,7 +8852,9 @@ function openEcosystemView(origin) {
   _ecosystemOrigin = (origin === 'collection') ? 'collection' : 'hub';
   _gradientBg && _gradientBg.reset();
   hideAllViews();
-  document.getElementById('ecoBackBtn').textContent = t(_ecosystemOrigin === 'collection' ? '← 收藏' : '← 主页');
+  var ecoBack = document.getElementById('ecoBackBtn');
+  ecoBack.title = t(_ecosystemOrigin === 'collection' ? '返回收藏' : '返回主页');
+  ecoBack.setAttribute('aria-label', ecoBack.title);
   document.getElementById('ecosystemView').style.display = 'block';
   renderEcosystem();
 }
@@ -8306,6 +8968,37 @@ function renderEcosystem() {
 
 function hubEcoStageHtml() {
   return '<div class="hub-stage"><div class="hub-eco-stage">' + ecoPyramidSvgHtml(true) + '</div></div>';
+}
+
+function hubChecklistStageHtml() {
+  function check(cx, cy) {
+    return '<path d="M' + cx + ' ' + cy + ' l3.2 3.6 l5.6 -6.6" fill="none" stroke="#8f6b1a" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>';
+  }
+  var rows = '';
+  [88, 118, 148, 178].forEach(function (y, i) {
+    rows += '<rect x="54" y="' + y + '" width="14" height="14" rx="3.5" fill="#fff" stroke="#b8860b" stroke-width="1.6"/>' +
+            (i < 2 ? check(57, y + 7) : '') +
+            '<rect x="76" y="' + (y + 3.5) + '" width="' + (i === 3 ? 66 : 86) + '" height="7" rx="3.5" fill="' +
+            (i < 2 ? '#e6dfcd' : '#efe9dc') + '"/>';
+  });
+  return '<div class="hub-stage">' +
+    '<span class="stage-chip">生涯规划</span>' +
+    '<div class="hub-cl-stage">' +
+      '<svg viewBox="0 0 220 262" aria-hidden="true">' +
+        '<defs><linearGradient id="clBadgeGold" x1="0" y1="0" x2="0" y2="1">' +
+          '<stop offset="0" stop-color="#f9e9b8"/><stop offset="0.55" stop-color="#e3c565"/><stop offset="1" stop-color="#cfa63a"/>' +
+        '</linearGradient></defs>' +
+        '<g transform="rotate(-4 108 132)">' +
+          '<rect x="36" y="24" width="144" height="208" rx="14" fill="#fffef9" stroke="#d8d2c2" stroke-width="2"/>' +
+          '<rect x="54" y="44" width="76" height="10" rx="5" fill="#e3c565"/>' +
+          '<rect x="54" y="60" width="48" height="6" rx="3" fill="#e6dfcd"/>' +
+          rows +
+          '<rect x="54" y="206" width="52" height="5" rx="2.5" fill="#efe9dc"/>' +
+        '</g>' +
+        '<circle cx="174" cy="82" r="31" fill="url(#clBadgeGold)" stroke="rgba(120,85,10,0.55)" stroke-width="1.5"/>' +
+        '<text x="174" y="95" text-anchor="middle" font-size="36" font-weight="800" font-family="Songti SC,STSong,serif" fill="#6b4d05">?</text>' +
+      '</svg>' +
+    '</div></div>';
 }
 
 function renderGrowthAll() {
@@ -10710,6 +11403,7 @@ function openHub() {
   hideAllViews();
   renderHub();
   document.getElementById('hubView').style.display = 'block';
+  fitHubHeader(); // 必须在 hub 可见后测量（display:none 时卡片没有布局尺寸）
   _gradientBg && _gradientBg.reset();
 }
 
@@ -10892,6 +11586,11 @@ function renderHub() {
   );
   var teamMeta = tg ? _hubRankedGroups.length + '组 · ' + getScoreGradeLetter(tg.score) + '·' + tg.score : '';
 
+  var clTitle = (typeof LANG !== 'undefined' && LANG === 'en') ? 'Self-Questions' : '自问清单';
+  var clDesc = (typeof LANG !== 'undefined' && LANG === 'en')
+    ? 'Career-planning checklists from The Long View and other books.'
+    : '《远见》等书籍的自问清单，<br>辅助你理清职业生涯规划';
+
   document.getElementById('hubGrid').innerHTML =
     hubCardShellHtml('openCollection()', '👤', '人物球星卡', personMeta,
       '查看、管理所有个人球星卡，追踪成长轨迹，进行人才测评', personStage) +
@@ -10900,7 +11599,9 @@ function renderHub() {
     hubCardShellHtml('openPkView()', '⚡', 'PK 分析', '个人 + 团队',
       '人物或团队的多维度 PK 对比，快速发现优劣势差异', hubPkStageHtml()) +
     hubCardShellHtml('openEcosystemView(\'hub\')', '🔺', '职业生态系统', '👥 ' + people.length,
-      '你的职业人脉五层金字塔', hubEcoStageHtml());
+      '你的职业人脉五层金字塔', hubEcoStageHtml()) +
+    hubCardShellHtml('clOpenChecklist()', '📝', clTitle, (typeof clHubMeta === 'function' ? clHubMeta() : ''),
+      clDesc, hubChecklistStageHtml());
 
   renderHubRadars();
 }
@@ -10975,6 +11676,7 @@ function hideAllViews() {
   document.getElementById('pkView').classList.remove('active');
   document.getElementById('rulesView').style.display = 'none';
   document.getElementById('assessmentView').classList.remove('active');
+  document.getElementById('checklistView').style.display = 'none';
 }
 
 // ---- Clear data ----
