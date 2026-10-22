@@ -134,7 +134,7 @@ const CHECKLIST_EN = {
       title: 'Five Big Questions · The Long Term',
       intro: [],
       purpose: 'Use five long-term questions to stress-test your career plan: automation risk, how you will find work, how you will spend your time, financial security, and happiness.',
-      foot: 'This note only had the general “Self-Question Checklist” tag on flomo, with no book title. The five questions come from The Long View’s look at the future of careers, so they are grouped here and can be moved later.',
+      foot: 'This note only carried the general “Self-Question Checklist” tag, with no book title. The five questions come from The Long View’s look at the future of careers, so they are grouped here and can be moved later.',
       sections: [
         {
           heading: 'Long-Term Questions',
